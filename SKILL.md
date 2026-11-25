@@ -1,6 +1,6 @@
 ---
 name: datavid
-description: Produce ranked data documentaries as procedural 3D tower videos. Use for countdowns about people, countries, buildings, companies, vehicles, products, or other measurable entities, including when the user gives only a topic. The skill researches a dated dataset, finds suitable license-aware entity images, animates towers growing in rank order, and exports user-selected MP4 resolutions.
+description: Produce ranked data documentaries with procedural 3D towers, image-aware animation, and explicit prevention/QA gates. Use for videos about ranked people, countries, buildings, companies, vehicles, products, or other measurable entities, including when the user gives only a topic.
 ---
 
 # datavid — ranked 3D tower documentaries
@@ -33,7 +33,21 @@ Each `data.json` item may contain:
 6. Use ten-rank chapters for the main countdown: retain an individual readable reveal for each item, add a stronger grouped growth/transition cue at ranks 10, 20, …, 90, then give each of the final ten ranks its own distinct growth beat and reading hold. Generate 100 reading holds and motion/boundary contact sheets with `python3 scripts/datavid/regenerate_storyboard.py --project /path/to/project`. Make the cadence explicit in `storyboard.md`; include representative growth frames and before/at/after boundary triplets. Share the current storyboard and wait for explicit user approval before any full-length MP4 render. Do not treat approval of an older preview as approval for a changed storyboard.
 7. Before starting the full render, ask which output resolutions are wanted: 144p (256×144), 240p (426×240), 360p (640×360), 480p (854×480), 720p (1280×720), and 1080p (1920×1080). Permit multiple selections. If the current request explicitly names the desired sizes, treat that as the answer; otherwise wait for the user's choice.
 8. Render one 1080p30 master, then create a separate MP4 for each selected resolution using `scripts/datavid/export_qualities.sh <master.mp4> <output-dir> <resolution...>`. When available, set `DATAVID_AUDIO_SOURCE` to the validated normalized PCM WAV so AAC is encoded once from PCM, not transcoded from the master's AAC. Keep the source aspect ratio (letterbox/pad rather than crop when necessary), frame rate, duration, and audio. Use names `<master-stem>_<resolution>.mp4`; the exporter uses `_v2`, `_v3`, … on collisions, validates dimensions/fps, fully decodes to a null sink, and atomically publishes without clobbering prior files. Preserve the master even when 1080p is selected.
-9. Verify each output's dimensions, duration, frame rate, codecs, audio stream, and full decode. Add all requested MP4s to Git LFS and push them with the project when authorized. Deliver links to each requested quality and the source project.
+9. Read `references/production-gates.md` before a substantial render and release. Verify each output's dimensions, duration, frame rate, frame count, codecs, audio stream, and full decode. Add only QA-passed requested MP4s to Git LFS and push them with the project when authorized. Deliver links to each requested quality and the source project.
+
+## Non-negotiable quality contract
+
+- Do not promise “zero bugs,” “error-free,” or certainty. No finite checklist proves that every possible visual, factual, compatibility, or perceptual defect is absent. Report the checks actually run, evidence, and remaining limitations.
+- Fail closed: treat unknown data, identity, licensing, layout, timing, cache state, audio, or export properties as unresolved. Do not start the full render or call an output final while a blocker remains.
+- Use the production gates and severity levels in `references/production-gates.md`. A known blocker stops release; exceptions must be specific, documented, and explicitly accepted where permissible. Never waive factual, rights, corruption, or wrong-output failures.
+- Bind storyboard approval to an input fingerprint covering current code, data, images, fonts, configuration, timing, and format. Any material change invalidates approval and dependent QA; regenerate the preview and obtain approval again.
+- Use a production-path smoke test before the full render, then full technical decode and final AAC loudness/true-peak measurement. Do not infer success from file existence, size, or a successful encode command alone.
+- Keep intermediates out of the release. Write to unique temporary paths, validate before atomic no-clobber publication, preserve previous approved files, and stage only the manifest-verified final deliverables.
+- Before promising a visual format, check whether the renderer implements it. The currently established format is the ranked 3D tower/countdown; other formats are design directions until implemented and tested.
+
+## Format registry and honest capability claims
+
+Offer the established tower countdown as the implemented default. Other useful formats to propose or develop as separate tested presets include: horizontal bar-race timeline; map/choropleth with ranked callouts; historical or forecast timeline; slopegraph/rank-change race; small-multiple comparison grid; podium/medal reveal; treemap or bubble-field overview; and editorial profile cards with data-driven transitions. Select a format for the data type and audience, not just visual novelty. Do not imply these alternatives are already supported by the current renderer; prototype, validate, document their controls, and show a storyboard before presenting one as available.
 
 ## Exact active-rank timing and graphics QA
 
