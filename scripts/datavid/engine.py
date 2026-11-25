@@ -611,7 +611,7 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
     for y,sc in zip(ys,scales):
         rings.append([bar_base(i)+np.array([x*sc,y,z*sc]) for x,z in xz])
     material=str(cfg('material','glass')).lower()
-    alpha={'glass':154,'metal':232,'solid':246}.get(material,154)
+    alpha={'glass':154,'metal':232,'solid':255}.get(material,154)
     surfaces=[]
     for r in range(3):
         for k in range(len(xz)):
@@ -637,7 +637,8 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
     if np.min(top[:,2])>0.8:
         tc=mix(col,(240,248,255),0.42 if material=='glass' else 0.22)
         d=ImageDraw.Draw(im,'RGBA')
-        d.polygon([tuple(q[:2]) for q in top],fill=tc+(int(alpha*0.92),),outline=(240,248,255,int(166*(1-fog))))
+        top_alpha = 255 if material == 'solid' else int(alpha * 0.92)
+        d.polygon([tuple(q[:2]) for q in top],fill=tc+(top_alpha,),outline=(240,248,255,int(166*(1-fog))))
         add_glow(emissive,float(top[:,0].mean()),float(top[:,1].mean()),
                  float(np.ptp(top[:,0]))*0.7+12,col,int(74*(1-fog)),0.28)
     portrait=item_image(i)

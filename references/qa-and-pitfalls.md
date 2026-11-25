@@ -4,6 +4,8 @@
 
 `3` (intro title), `8` (city rise), `14` (first item), `middle of the countdown`, `T_COUNT_END − 2` (last item), `T_COUNT_END + 5` (finale), `T_ENDCARD + 3` (end card).
 
+Check that title, channel branding, HUD, lower thirds, value scale, portrait labels, finale text, and end-card text have visible spacing and do not collide or clip. Confirm column faces are opaque and saturated when `material: solid`; only accept translucent columns when `glass` was explicitly selected. Inspect transitions between representative stills for broken geometry, seams, or stray marks before approval.
+
 ## Traps that are invisible in code review
 
 - **PIL ignores alpha in text fills.** `draw.text(..., fill=(r,g,b,0))` still paints opaque glyphs on an RGB image. `engine.text_alpha` / `draw_ls` composite through an RGBA layer instead; always use them for fading text, never raw `ImageDraw.text` with an alpha value.

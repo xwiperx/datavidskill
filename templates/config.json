@@ -33,7 +33,7 @@
   "camera_target_y": 9.0,
   "camera_fov": 38.0,
   "bevel_radius": 0.46,
-  "material": "glass",
+  "material": "solid",
   "visual_mode": "auto",
   "image_directory": "assets/entities",
   "seconds_per_item": 1.46,

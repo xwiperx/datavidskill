@@ -49,16 +49,7 @@ def draw_youtube_mark(d, cx, cy, width=64, alpha=255):
 def draw_title(im, t):
     """Cinematic opening: kinetic numeric motif, editorial title, portrait teaser."""
     d = ImageDraw.Draw(im, 'RGBA')
-    # Oversized low-contrast number field creates depth without hiding the scene.
-    pulse = 0.5 + 0.5 * math.sin(t * 1.7)
-    big_alpha = int(32 * clamp((t + 0.2) / 0.6, 0, 1) * clamp((8.4 - t) / 1.0, 0, 1))
-    fbg = font(I_BLACK, 530)
-    number_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
-    number_draw = ImageDraw.Draw(number_layer)
-    number_draw.text((W/2, 225 + math.sin(t*0.6)*12), '100', font=fbg,
-                     fill=(124, 178, 236, int(big_alpha * (0.72 + pulse*0.25))), anchor='mm',
-                     stroke_width=2, stroke_fill=(255, 194, 88, int(big_alpha*0.35)))
-    im.paste(number_layer, (0, 0), number_layer)
+    # Keep the title lockup clear: no decorative words or numerals behind text.
     d = ImageDraw.Draw(im, 'RGBA')
     # Sweeping circular reticle and tick marks establish a documentary/data tone.
     ring_a = int(115 * clamp(t/0.8, 0, 1) * clamp((7.6-t)/1.0, 0, 1))
@@ -94,7 +85,7 @@ def draw_title(im, t):
         ft = font(BEBAS,194)
         while tw(d,title,ft,5)>W-300 and ft.size>66:
             ft=font(BEBAS,ft.size-8)
-        draw_ls(d,(W/2-tw(d,title,ft,5)/2,365+slide),title,ft,(246,249,255),5,alpha=a)
+        draw_ls(d,(W/2-tw(d,title,ft,5)/2,348+slide),title,ft,(246,249,255),5,alpha=a)
         sub = str(CFG.get('title_sub','')).strip()
         if sub:
             fs = font(I_MED,17)
@@ -110,8 +101,8 @@ def draw_title(im, t):
         markw=62
         gap=22
         left=W/2-(textw+gap+markw)/2
-        draw_ls(d,(left,530),brand,fb,(245,248,255),3.2,alpha=ba)
-        draw_youtube_mark(d,left+textw+gap+markw/2,552,markw,ba)
+        draw_ls(d,(left,550),brand,fb,(245,248,255),3.2,alpha=ba)
+        draw_youtube_mark(d,left+textw+gap+markw/2,572,markw,ba)
     # Four rounded portrait windows briefly preview the range of the countdown.
     if 2.7 < t < 7.1:
         from PIL import ImageOps
