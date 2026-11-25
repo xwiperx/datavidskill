@@ -1,5 +1,5 @@
 """Parallel render -> x264 segments -> concat -> mux score."""
-import os, sys, time, subprocess, argparse
+import os, sys, time, subprocess, argparse, hashlib, json, glob
 from multiprocessing import Pool
 
 import engine as E
@@ -10,6 +10,58 @@ ROOT = E.ROOT
 OUT = os.path.join(ROOT, 'out')
 SEG = os.path.join(OUT, 'seg')
 CHUNK = 300
+SIGNATURE = os.path.join(OUT, '.render_signature.json')
+
+
+def source_fingerprint(chunk=CHUNK):
+    """Hash every input that can change a rendered frame or the score."""
+    code_dir = os.path.dirname(os.path.abspath(__file__))
+    paths = glob.glob(os.path.join(code_dir, '*.py'))
+    paths += glob.glob(os.path.join(code_dir, 'fonts', '*'))
+    paths += [os.path.join(os.path.dirname(code_dir), 'render.py')]
+    paths += [os.path.join(ROOT, name) for name in
+              ('config.json', 'data.json', 'image_sources.json')]
+    try:
+        manifest = json.load(open(os.path.join(ROOT, 'image_sources.json')))
+        paths += [os.path.join(ROOT, row['local_path']) for row in manifest
+                  if row.get('local_path')]
+    except (OSError, ValueError, TypeError):
+        pass
+    digest = hashlib.sha256()
+    digest.update(f'chunk={chunk};frames={TOTAL};fps={FPS}'.encode())
+    for path in sorted(set(paths)):
+        if not os.path.isfile(path):
+            digest.update(('MISSING:' + os.path.relpath(path, ROOT)).encode())
+            continue
+        digest.update(os.path.relpath(path, ROOT).encode())
+        with open(path, 'rb') as f:
+            for block in iter(lambda: f.read(1024 * 1024), b''):
+                digest.update(block)
+    return digest.hexdigest()
+
+
+def invalidate_stale_cache(force=False, chunk=CHUNK):
+    """Never concatenate segments rendered from a different code/data version."""
+    current = source_fingerprint(chunk=chunk)
+    previous = None
+    try:
+        previous = json.load(open(SIGNATURE)).get('sha256')
+    except (OSError, ValueError, AttributeError):
+        pass
+    if force or previous != current:
+        stale = glob.glob(os.path.join(SEG, 'seg_*.mp4'))
+        for path in stale:
+            os.remove(path)
+        for name in ('video_silent.mp4', 'segs.txt', 'score.wav'):
+            path = os.path.join(OUT, name)
+            if os.path.exists(path):
+                os.remove(path)
+        print(f'render inputs changed; invalidated {len(stale)} cached segments', flush=True)
+    os.makedirs(OUT, exist_ok=True)
+    tmp = SIGNATURE + '.tmp'
+    with open(tmp, 'w') as f:
+        json.dump({'sha256': current}, f)
+    os.replace(tmp, SIGNATURE)
 
 
 def chunks_list(chunk=CHUNK):
@@ -44,7 +96,8 @@ def work(args):
     return idx, f1 - f0, time.time() - t0
 
 
-def run(workers=6, chunk=CHUNK, audio=True, mux=True):
+def run(workers=6, chunk=CHUNK, audio=True, mux=True, force=False):
+    invalidate_stale_cache(force=force, chunk=chunk)
     os.makedirs(SEG, exist_ok=True)
     chunks = chunks_list(chunk)
     t0 = time.time()
@@ -82,5 +135,6 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('--workers', type=int, default=6)
     ap.add_argument('--chunk', type=int, default=CHUNK)
+    ap.add_argument('--force', action='store_true', help='discard cached segments and render all frames')
     a = ap.parse_args()
-    run(workers=a.workers, chunk=a.chunk)
+    run(workers=a.workers, chunk=a.chunk, force=a.force)

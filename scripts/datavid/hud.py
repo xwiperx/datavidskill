@@ -153,33 +153,43 @@ def draw_plate(im, cam, p, idx, alpha=255, scale=1.0):
     a = int(alpha)
 
     name = p['name'].upper()
+    rk = "#" + str(idx)
+    frk = font(BEBAS, int(30 * scale))
+    wr = tw(d, rk, frk, 0)
     fs = int(33 * scale)
     f = font(I_BOLD, fs)
-    while tw(d, name, f, 0.5) > 470 * scale and fs > 14:
+    while tw(d, name, f, 0.5) > min(430 * scale, 520 * scale - 48 * scale - wr) and fs > 11:
         fs -= 1
         f = font(I_BOLD, fs)
     wn = tw(d, name, f, 0.5)
     fw = font(BEBAS, int(40 * scale))
     ws = tw(d, fmt_money(p['worth']), fw, 0)
-    pw = max(wn, ws) + 46 * scale
+    pw = min(520 * scale, max(190 * scale, max(wn, ws) + 46 * scale))
     ph = 98 * scale
 
-    # connector
-    d.line([(sx, sy + 6), (sx, pt[1] - 4)], fill=col + (int(a * 0.55),), width=2)
-    d.ellipse([sx - 3, sy + 2, sx + 3, sy + 8], fill=(255, 255, 255, a))
-
-    x0 = sx - pw / 2
-    y0 = sy - ph
-    # avoid colliding with the lower-third card
-    if x0 < 930 and y0 + ph > 706:
-        return
-    # The enlarged portrait occupies reserved negative space on the right.
-    # Suppress a floating nameplate rather than allowing either to cover text.
+    # Use one deterministic callout lane for every active rank. The old code
+    # silently returned when this plate touched the lower-third or portrait,
+    # making labels disappear for parts of the countdown.
     panel = E.cfg('feature_portrait_box', [1480, 270, 344, 410])
     px, py, pwidth, pheight = panel
-    if (x0 < px + pwidth and x0 + pw > px and
-            y0 < py + pheight and y0 + ph > py):
-        return
+    lane_left = 930 * scale
+    lane_right = min((W - 96) * scale, (px - 18) * scale)
+    max_pw = max(180 * scale, lane_right - lane_left)
+    pw = min(pw, max_pw)
+    x0 = clamp(sx - pw / 2, lane_left, lane_right - pw)
+    y0 = clamp(sy - ph, 8 * scale, 710 * scale)
+
+    # Connect the active tower to the fixed, collision-free label lane.
+    tx = clamp(sx, x0 + 18 * scale, x0 + pw - 18 * scale)
+    if y0 + ph < pt[1] - 4 * scale:
+        start, end = (tx, y0 + ph), (sx, pt[1] - 4 * scale)
+    else:
+        start, end = (sx, pt[1] + 4 * scale), (tx, y0)
+    d.line([start, end], fill=col + (int(a * 0.55),), width=2)
+    d.ellipse([tx - 3 * scale, (y0 + ph if y0 + ph < pt[1] - 4 * scale else y0) - 3 * scale,
+               tx + 3 * scale, (y0 + ph if y0 + ph < pt[1] - 4 * scale else y0) + 3 * scale],
+              fill=(255, 255, 255, a))
+
     lay = Image.new('RGBA', (int(pw) + 2, int(ph) + 2), (0, 0, 0, 0))
     dl = ImageDraw.Draw(lay)
     dl.rectangle([0, 0, int(pw), int(ph)], fill=(8, 12, 20, int(a * 0.80)),
@@ -190,6 +200,4 @@ def draw_plate(im, cam, p, idx, alpha=255, scale=1.0):
     text_alpha(im, (x0 + 22 * scale, y0 + 12 * scale), fmt_money(p['worth']), fw, col, a)
     text_alpha(im, (x0 + 22 * scale, y0 + 55 * scale), name, f, (236, 242, 255), a)
     # rank chip right
-    rk = "#" + str(idx)
-    frk = font(BEBAS, int(30 * scale))
     text_alpha(im, (x0 + pw - 18 * scale - tw(d2, rk, frk, 0), y0 + 8 * scale), rk, frk, (140, 156, 178), a)

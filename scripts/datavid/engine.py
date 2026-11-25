@@ -141,7 +141,14 @@ def item_image(index):
     if index not in _IMAGE_CACHE:
         image = None
         if 0 <= index < len(IMAGE_MANIFEST):
-            rel = IMAGE_MANIFEST[index].get('local_path')
+            record = IMAGE_MANIFEST[index]
+            # The manifest is rank-indexed; fail closed if data and attribution
+            # were reordered, so one person's portrait can never label another.
+            expected_rank = PEOPLE[index]['pos']
+            if int(record.get('rank', expected_rank)) != expected_rank or record.get('name') != PEOPLE[index]['name']:
+                _IMAGE_CACHE[index] = None
+                return None
+            rel = record.get('local_path')
             if rel:
                 path = os.path.join(ROOT, rel)
                 try:
@@ -668,12 +675,19 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
             d.line([tuple(q[:2]) for q in top]+[tuple(top[0,:2])],
                    fill=(224,246,255,pulse),width=2)
     portrait=item_image(i)
-    # Keep the square wholly inside the flat face: inset from both chamfered
-    # edges, the cap seam, and the rank-number zone below it.
+    # Keep an on-column portrait on every verified-image bar, including the
+    # short early towers. Shrink it to the available upper-face zone instead
+    # of silently omitting it when the configured default would overlap rank.
     safe_width=max(0.0, BW-2*(bevel+0.24))
-    side=min(float(cfg('bar_image_size',1.28)),safe_width)
-    if portrait is not None and side>=0.60 and h>=side+1.90:
-        y1=h-0.42; y0=y1-side
+    rank_y0=0.20
+    rank_box_h=min(1.38,max(0.70,h*0.48))
+    rank_y1=min(h-0.16,rank_y0+rank_box_h)
+    image_bottom=h-0.22
+    image_top_min=rank_y1+0.10
+    fit_height=max(0.0,image_bottom-image_top_min)
+    side=min(float(cfg('bar_image_size',1.28)),safe_width,fit_height)
+    if portrait is not None and side>=0.42:
+        y1=image_bottom; y0=y1-side
         z=BD/2+0.010
         x0,x1=-side/2,side/2
         quad3=[bar_base(i)+np.array([x0,y1,z]),bar_base(i)+np.array([x1,y1,z]),
@@ -692,13 +706,13 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
             d=ImageDraw.Draw(im,'RGBA')
             d.line([tuple(q[:2]) for q in pq]+[tuple(pq[0,:2])],
                    fill=mix(col,(255,255,255),0.68)+(int(225*(1-fog)),),width=2)
-    if show_rank and vz<80 and h>1.45:
+    if show_rank and h>0.80:
         # Oversized rank occupies roughly half the front-face height. It is
         # placed below the portrait zone and inset from the bevels.
         face_w=max(0.55,BW-2*(bevel+0.20))
-        box_h=min(1.38,max(0.70,h*0.48))
-        y0=0.20
-        y1=min(h-0.16,y0+box_h)
+        box_h=rank_box_h
+        y0=rank_y0
+        y1=rank_y1
         if y1-y0>=0.55:
             quad=cam.project(np.asarray([bar_base(i)+np.array([-face_w/2,y1,BD/2+0.014]),bar_base(i)+np.array([face_w/2,y1,BD/2+0.014]),
                  bar_base(i)+np.array([face_w/2,y0,BD/2+0.014]),bar_base(i)+np.array([-face_w/2,y0,BD/2+0.014])]))

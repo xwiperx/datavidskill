@@ -15,13 +15,26 @@ _GRAIN = [_rng.normal(0, 3.0, (H, W, 1)).astype(np.float32) for _ in range(6)]
 def u_of_t(t):
     if t <= T_INTRO:
         return 0.0
-    tt = (t - T_INTRO) / PER_BAR
-    if tt >= N:
+    if t >= T_COUNT_END:
         return float(N)
-    i = math.floor(tt)
-    s = tt - i
-    s2 = smoothstep((s - 0.10) / 0.78)
-    return min(float(N), i + s2)
+    # Make each bar's local progress a direct function of wall-clock time.
+    # The active rank, tower rise, featured portrait, and label now switch at
+    # the same boundary instead of the old delayed eased threshold.
+    return clamp((t - T_INTRO) / PER_BAR, 0.0, float(N))
+
+
+def active_rank_state(t):
+    """Return zero-based active rank, within-rank phase, and shared HUD alpha."""
+    if t < T_INTRO or t >= T_COUNT_END:
+        return None, 0.0, 0
+    elapsed = t - T_INTRO
+    index = min(N - 1, int(elapsed / PER_BAR))
+    phase = clamp((elapsed - index * PER_BAR) / PER_BAR, 0.0, 1.0)
+    # All rank-specific identity elements use one short enter/exit envelope.
+    # This clears the previous portrait and copy before the next tower begins.
+    fade_in = 0.72 + 0.28 * smoothstep(phase / 0.035)
+    fade_out = smoothstep((1.0 - phase) / 0.055)
+    return index, phase, int(255 * min(fade_in, fade_out))
 
 
 def reveal_of(t, i):
@@ -439,23 +452,26 @@ def render(t, fi=0):
 
     # ---- typography on top of the graded scene
     if t < T_INTRO:
-        a = int(255 * clamp((t - 8.4) / 1.0, 0, 1))
+        intro_rank = clamp((t - 8.4) / 1.0, 0, 1)
+        clear_before_countdown = 1 - smoothstep((t - (T_INTRO - 0.65)) / 0.65)
+        a = int(255 * intro_rank * clear_before_countdown)
         if a > 0:
             Hd.draw_topbar(out, PEOPLE[0], 1, alpha=a, total=N)
     elif t < T_COUNT_END:
-        idx = int(clamp(int(u) + 1, 1, N))
-        p = PEOPLE[idx - 1]
-        appear = clamp((t - T_INTRO) / 0.7, 0, 1)
-        Hd.draw_topbar(out, p, idx, alpha=int(255 * appear), total=N)
-        Hd.draw_card(out, p, alpha=255, appear=appear)
-        Hd.draw_scale(out, p['worth'], alpha=int(235 * appear))
-        Hd.draw_progress(out, (idx - 1) / max(1, N - 1), tier_color(p['worth']), alpha=int(220 * appear))
-        Hd.draw_plate(out, cam, p, idx, alpha=int(255 * appear), scale=1.0)
-        draw_feature_portrait(out,idx-1,alpha=int(255*appear))
+        active_index, phase, active_alpha = active_rank_state(t)
+        idx = active_index + 1
+        p = PEOPLE[active_index]
+        Hd.draw_topbar(out, p, idx, alpha=active_alpha, total=N)
+        Hd.draw_card(out, p, alpha=active_alpha, appear=1.0)
+        Hd.draw_scale(out, p['worth'], alpha=int(235 * active_alpha / 255))
+        Hd.draw_progress(out, (idx - 1) / max(1, N - 1), tier_color(p['worth']),
+                         alpha=int(220 * active_alpha / 255))
+        Hd.draw_plate(out, cam, p, idx, alpha=active_alpha, scale=1.0)
+        draw_feature_portrait(out, active_index, alpha=active_alpha)
     else:
         p = PEOPLE[-1]
-        Hd.draw_topbar(out, p, N, alpha=255, total=N)
-        Hd.draw_card(out, p, alpha=255, appear=clamp(1 - (t - T_COUNT_END) / 1.0, 0, 1))
+        # Rank-specific topbar, plate and portrait have all cleared at the
+        # boundary. Only the finale progress trace may remain on screen.
         pr = int(220 * (1 - clamp((t - T_FINALE_END) / 1.0, 0, 1)))
         Hd.draw_progress(out, 1.0, tier_color(p['worth']), alpha=pr)
 
