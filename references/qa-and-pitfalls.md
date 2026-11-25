@@ -1,38 +1,45 @@
-# QA checklist and known traps
+# QA checklist and known pitfalls
 
-## Inspect these stills before any full render
+Use this checklist before storyboard approval and again after every full render. A storyboard approval applies only to the exact current design/data snapshot and never authorizes an older or changed render.
 
-`3` (intro title), `8` (city rise), `14` (first item), `middle of the countdown`, `T_COUNT_END − 2` (last item), `T_COUNT_END + 5` (finale), `T_ENDCARD + 3` (end card).
+## Data and portrait identity
 
-Check that title, channel branding, HUD, lower thirds, value scale, portrait labels, finale text, and end-card text have visible spacing and do not collide or clip. Confirm column faces are opaque and saturated when `material: solid`; only accept translucent columns when `glass` was explicitly selected. Inspect transitions between representative stills for broken geometry, seams, or stray marks before approval.
+- Validate non-empty `items`, finite non-negative values, unique display names, stable ascending rank order, and agreement between each row and the corresponding manifest `rank`/`name`.
+- Confirm the source/date/unit of the ranking and recompute its stated total. Structural consistency does not establish that every estimate is factually correct; spot-check values against the dated source and flag unresolved discrepancies.
+- Build and inspect a labeled contact sheet of every local image. A resolver/API match or a permissive license does not prove identity. Check doubtful source pages manually; if exact identity or license is uncertain, remove the local path and leave the fixed portrait card empty. Never replace a missing portrait with a logo, group scene, similarly named person, or generic image.
+- Check every local path exists and its license/artist/credit/source URL remains in the manifest. Do not leave excluded assets available to the renderer.
+- Report actual eligible portrait coverage and list all missing/excluded ranks. Do not say “all images verified” unless each one was separately reviewed.
 
-## Traps that are invisible in code review
+## Still and layout review
 
-- **PIL ignores alpha in text fills.** `draw.text(..., fill=(r,g,b,0))` still paints opaque glyphs on an RGB image. `engine.text_alpha` / `draw_ls` composite through an RGBA layer instead; always use them for fading text, never raw `ImageDraw.text` with an alpha value.
-- **Floating plate clipping.** `hud.draw_plate` must be tall enough for the name (`ph = 98·scale`). If the name sits at `y0+55` with a 33 px font, a shorter plate cuts the letter bottoms.
-- **Plate vs lower-third collision.** Near the end of the countdown tall towers push the plate down into the card. `draw_plate` returns early when the plate would overlap `x < 930, y > 706`; keep that guard.
-- **Numerals on distant towers.** `draw_one_bar` only draws the rank numeral when `vz < 52` and the projected face is at least 44×26 px. Without this, far towers overlap into unreadable glyph soup.
-- **Long names.** Plate auto-shrinks to 470 px; the card shrinks to 700 px. Anything longer is truncated visually — shorten the name in the data instead.
-- **Scale unit label.** The unit (`$B`, `m`) is drawn above the right end of the scale, not next to the last tick, or it collides with the final tick label.
-- **End card fade.** `render_end` fades out over the last 1.6 s; without it the video cuts hard to black.
+Inspect the intro, early/middle/late rank holds, a missing-image rank, the final ten, finale, and end card. Render all rank holds into labeled contact sheets before asking for approval. Also render exact rank-boundary triplets (`t−1 frame`, boundary frame, `t+1 frame`), growth, chapter gates, both scene transitions, and the last pre-endcard frames.
 
-## New portrait and countdown checks
+Check title/brand/logo, source note, name/value/rank, floating plate, large portrait card, on-column image, scale labels, progress rail, finale copy, and end-card text for clipping, overlap, stale-rank carry-over, flashes, seams, and off-frame pixels. On-column imagery must remain inside the flat face, inset from bevels, seams and rank glyphs. Adaptively shrink it to fit; do not silently omit a verified image due to low tower height. Keep vivid opaque columns unless glass is explicitly requested.
 
-- Confirm the enlarged portrait card has identical screen-space bounds for every item and does not collide with the top-right rank, lower-third, scale, or floating nameplate. Suppress the nameplate when it intersects the reserved portrait rectangle.
-- On-column portraits must remain entirely within the flat front-face safe area, inset from chamfers, seams, and rank numerals. Omit the small portrait on bars that are too short; never stretch it outside the face.
-- Rank numerals should occupy roughly half the visible front-face height in their own lower zone. Check short early bars and the #100 tower.
-- Review ten-rank transition cues at #10, #20, …, #90, then inspect each independent reveal/hold from #91 through #100.
-- Use opaque/near-opaque info cards so distant rank numerals cannot ghost through the lower third and appear to overlap copy.
+Keep the name plate and lower-third in separate deterministic lanes. Shrink names, then ellipsize if necessary; text must remain inside the plate/card. Never suppress required information because it collides—change the layout and regenerate. Keep the progress rail in a dedicated bottom gutter, outside the lower-third. A scale must cover at least the maximum data value; derive a rounded-up safe maximum when configuration is stale.
 
-## Frame-level checks
+Map text and image textures to projected faces with a projective homography, not an affine approximation, and test all four corners on a non-rectangular projected quad.
 
-- `ffprobe` frame count equals `round(30 × duration)`.
-- First frame near black, last frame black.
-- No duplicated or missing chunk at 10 s boundaries (chunks are 300 frames): compare frames at `t−0.03` and `t+0.03` around 10 s, 20 s, 30 s.
-- Audio: `ebur128` integrated ≈ −14 LUFS, true peak ≤ −1.5 dBTP, no clicks (`max |diff|` of the waveform < 0.05).
+## Timeline and motion
 
-## Performance
+Use one timing source: `start(i) = T_INTRO + (i−1)×PER_BAR`, `end(i)=start(i)+PER_BAR`. At the boundary, activate the column rise, top HUD, name/value/rank, and enlarged portrait together. Clear all previous-rank identity at the next boundary. Check the final frame before, exact boundary, and first frame after every transition class, especially early, middle, and final ranks.
 
-- 1080p30, 6 workers, ~0.31 s/frame/worker → 5400 frames ≈ 5 min; a 1500-frame short ≈ 1.5 min.
-- Segments are cached: re-running skips existing `out/seg/seg_*.mp4`. Delete a segment to re-render only that range.
-- CRF 18 with film grain lands around 16 Mbps (≈370 MB for 3 min). Raise `crf` to 21–22 for a ~50% smaller file with little visible loss.
+Each reveal receives a readable growth beat and hold. Add restrained chapter accents at 10-rank gates through #90; ranks #91–#100 each get their own independent growth beat. Keep motion off required copy and settle it before the next rank. Derive end-card fades from configured duration, never a fixed absolute timestamp.
+
+Reject empty or malformed datasets with explicit validation messages before rendering; avoid implicit `min()`/`max()` failures.
+
+## Cache, audio and delivery safety
+
+- Fingerprint source code, data, config, image manifest, local source images, fonts, frame rate, frame count, and chunk size. Invalidate cache when any input changes.
+- A cached segment is valid only after probing exact dimensions, fps, frame count, codec, and full decode. Render to a unique temporary file, validate it, then atomically publish. Do not treat a size threshold as proof of completion.
+- Write the cache signature only after successful segments and validated concatenation. Use a per-project lock. Preserve previously delivered MP4s; choose a unique output name and never use `ffmpeg -y` against a published file. Validate a temporary final output before no-clobber publication.
+- Generate WAV to a temporary file, verify channels/sample rate/duration/frame count, and atomically publish. Normalize the delivered mix with EBU R128 (`I≈−14 LUFS`, `TP≤−1.5 dBTP`; use −2 dBTP before AAC encoding to leave codec margin). Recheck the encoded output. Inspect audio at all scene/chunk boundaries and check for clipping or isolated discontinuities; do not treat normal musical transients alone as digital clicks.
+- Full render gate: regenerate the current storyboard, inspect all 100 holds and motion samples, show it to the user, and wait for explicit approval. Ask for one or more resolutions from 144p, 240p, 360p, 480p, 720p and 1080p. Previous approvals/selections do not carry over to a changed storyboard/output.
+- After approval, render one 1080p30 master and only the selected delivery sizes. Probe each MP4 for dimensions, frame rate, frame count, duration, video/audio streams, and perform a complete decode. Measure loudness/true peak on the final AAC. Preserve prior versions and use Git LFS for large deliverables.
+
+## Frame/media checks
+
+- The master is 1920×1080, 30fps, with `round(30 × duration)` frames.
+- Decode every complete output, not only sampled frames. Compare frames on both sides of every chunk boundary to detect missing/duplicated frames.
+- Inspect first and last frames, all chunk boundaries, and a grid of samples spanning the full duration. Verify actual timeline duration, end-card fade and audio tail.
+- When publishing, preserve `image_sources.json` and attribution/coverage notes alongside the project.

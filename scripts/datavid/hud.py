@@ -32,6 +32,21 @@ def fmt_money_long(v):
     return f"{pre}{v:,.0f}{E.cfg('long_suffix', ' BILLION')}"
 
 
+def fit_name(draw, text, max_width=700, start_size=50, min_size=24):
+    """Shrink a name, then ellipsize it so it stays inside its reserved lane."""
+    size = start_size
+    f = font(I_BOLD, size)
+    while size > min_size and tw(draw, text, f, 0) > max_width:
+        size -= 2
+        f = font(I_BOLD, size)
+    if tw(draw, text, f, 0) > max_width:
+        fitted = text
+        while fitted and tw(draw, fitted + '…', f, 0) > max_width:
+            fitted = fitted[:-1]
+        text = fitted + '…'
+    return text, f
+
+
 def panel(im, box, fill=(7, 11, 19, 200), border=(255, 255, 255, 26), radius=0, accent=None):
     x0, y0, x1, y1 = box
     lay = Image.new('RGBA', (x1 - x0, y1 - y0), (0, 0, 0, 0))
@@ -65,7 +80,8 @@ def draw_scale(im, worth, alpha=255):
     d = ImageDraw.Draw(im, 'RGBA')
     x1, y1 = W - 96, 980
     x0 = x1 - 430
-    sm = float(E.cfg('scale_max', 0) or (math.ceil(E.MAXW / 200.0) * 200))
+    configured = float(E.cfg('scale_max', 0) or 0)
+    sm = max(configured, math.ceil(E.MAXW / 100.0) * 100.0)
     pre, suf = E.cfg('value_prefix', '$'), E.cfg('value_suffix', 'B')
     d.line([(x0, y1), (x1, y1)], fill=(255, 255, 255, int(alpha * 0.22)), width=1)
     for k in range(5):
@@ -76,7 +92,7 @@ def draw_scale(im, worth, alpha=255):
                fill=(120, 136, 158, int(alpha * 0.85)))
     d.text((x1, y1 - 18), f"{pre}{suf}", font=font(I_MED, 15),
            fill=(120, 136, 158, int(alpha * 0.85)), anchor='ra')
-    xm = x0 + (x1 - x0) * min(worth, sm) / sm
+    xm = x0 + (x1 - x0) * clamp(worth / sm, 0.0, 1.0)
     col = E.tier_color(worth)
     d.rectangle([x0, y1 - 2, xm, y1 + 1], fill=col + (int(alpha * 0.9),))
     d.ellipse([xm - 5, y1 - 5, xm + 5, y1 + 5], fill=(255, 255, 255, alpha))
@@ -88,7 +104,8 @@ def draw_progress(im, frac, color, alpha=255):
     if alpha < 3:
         return
     d = ImageDraw.Draw(im, 'RGBA')
-    y = H - 26
+    # Keep the progress rail visibly below the lower-third information card.
+    y = H - 14
     d.line([(96, y), (W - 96, y)], fill=(255, 255, 255, int(alpha * 0.13)), width=2)
     x1 = 96 + (W - 192) * clamp(frac, 0, 1)
     d.line([(96, y), (x1, y)], fill=color + (int(alpha * 0.95),), width=2)
@@ -113,14 +130,7 @@ def draw_card(im, p, alpha=255, appear=1.0):
     d = ImageDraw.Draw(im, 'RGBA')
     d.ellipse([x0, y0 + 22, x0 + 9, y0 + 31], fill=col + (a,))
     draw_ls(d, (x0 + 20, y0 + 18), p['industry'].upper(), font(I_SEMI, 15), (150, 166, 188), 3.2, alpha=a)
-    name = p['name'].upper()
-    fs = 50
-    while fs > 24:
-        f = font(I_BOLD, fs)
-        if tw(d, name, f, 0) <= 700:
-            break
-        fs -= 2
-    f = font(I_BOLD, fs)
+    name, f = fit_name(d, p['name'].upper(), max_width=700)
     shadow_text(d, (x0, y0 + 42), name, f, (240, 245, 255), 0, a, 0.55)
     wstr = fmt_money(p['worth'])
     fw = font(BEBAS, 92)

@@ -30,7 +30,17 @@ def cfg(key, default=None):
     return default if v is None else v
 
 
-ITEMS = sorted(DATA['items'], key=lambda x: float(x['value']))
+RAW_ITEMS = DATA.get('items')
+if not isinstance(RAW_ITEMS, list) or not RAW_ITEMS:
+    raise ValueError('data.json must contain a non-empty items list')
+for row_no, row in enumerate(RAW_ITEMS, 1):
+    try:
+        value = float(row['value'])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError(f'item {row_no} must have a numeric value') from exc
+    if not math.isfinite(value) or value < 0 or not str(row.get('name', '')).strip():
+        raise ValueError(f'item {row_no} must have a non-empty name and finite non-negative value')
+ITEMS = sorted(RAW_ITEMS, key=lambda x: float(x['value']))
 N = len(ITEMS)
 PEOPLE = [{
     'pos': i + 1,
@@ -51,9 +61,13 @@ SECOND = PEOPLE[-2]['worth'] if N > 1 else MAXW
 SPI = float(cfg('seconds_per_item', 1.46))
 if CFG.get('duration'):
     DUR = float(CFG['duration'])
+    if not math.isfinite(DUR) or DUR <= 34.0:
+        raise ValueError('duration must be finite and greater than 34 seconds')
     SPI = (DUR - 34.0) / N
 else:
     DUR = 34.0 + N * SPI
+    if not math.isfinite(SPI) or SPI <= 0:
+        raise ValueError('seconds_per_item must be finite and positive')
 NF = int(round(FPS * DUR))
 T_INTRO = 12.0
 T_FINALE_END = DUR - 12.0
@@ -490,7 +504,7 @@ def fill_quad_fade(im, pts, c_top, c_bot, a_top, a_bot, gamma=1.0):
 
 
 def paste_quad(im, src, quad, alpha=255):
-    """Affine-map an RGBA text image onto a projected quad (TL,TR,BR,BL)."""
+    """Perspective-map RGBA artwork onto a projected quad (TL,TR,BR,BL)."""
     from PIL import ImageChops
     xs = [p[0] for p in quad]; ys = [p[1] for p in quad]
     x0, x1 = int(math.floor(min(xs))), int(math.ceil(max(xs)))
@@ -499,19 +513,24 @@ def paste_quad(im, src, quad, alpha=255):
     dw, dh = x1c - x0c, y1c - y0c
     if dw <= 0 or dh <= 0 or dw > 2400 or dh > 2400:
         return
-    TL, TR, BL = quad[0], quad[1], quad[3]
     sw, sh = src.size
-    a11 = (TR[0] - TL[0]) / sw; a21 = (TR[1] - TL[1]) / sw
-    a12 = (BL[0] - TL[0]) / sh; a22 = (BL[1] - TL[1]) / sh
-    det = a11 * a22 - a12 * a21
-    if abs(det) < 1e-9:
-        return
-    i11, i12 = a22 / det, -a12 / det
-    i21, i22 = -a21 / det, a11 / det
-    c = -(i11 * TL[0] + i12 * TL[1]) + i11 * x0c + i12 * y0c
-    f = -(i21 * TL[0] + i22 * TL[1]) + i21 * x0c + i22 * y0c
+    # Destination-local -> source coordinates; unlike the previous affine map,
+    # this preserves all four corners under a projective camera.
+    dst = [(float(p[0] - x0c), float(p[1] - y0c)) for p in quad]
+    src_pts = [(0.0, 0.0), (float(sw), 0.0), (float(sw), float(sh)), (0.0, float(sh))]
+    matrix, vector = [], []
+    for (x, y), (u, v) in zip(dst, src_pts):
+        matrix.append([x, y, 1, 0, 0, 0, -u*x, -u*y]); vector.append(u)
+        matrix.append([0, 0, 0, x, y, 1, -v*x, -v*y]); vector.append(v)
     try:
-        out = src.transform((dw, dh), Image.AFFINE, (i11, i12, c, i21, i22, f), resample=Image.BICUBIC)
+        coeffs = np.linalg.solve(np.asarray(matrix, dtype=np.float64),
+                                 np.asarray(vector, dtype=np.float64))
+    except np.linalg.LinAlgError:
+        return
+    try:
+        out = src.transform((dw, dh), Image.Transform.PERSPECTIVE,
+                            tuple(float(v) for v in coeffs),
+                            resample=Image.Resampling.BICUBIC)
     except Exception:
         return
     mask = Image.new('L', (dw, dh), 0)

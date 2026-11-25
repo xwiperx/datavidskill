@@ -136,7 +136,7 @@ def draw_countdown_motion(im, t, u, idx, color):
     pulse = math.sin(math.pi*phase) if 0 < phase < 1 else 0.0
     if pulse > 0.01:
         aa = int(135*pulse)
-        y = H-26
+        y = H-14
         d.line([(max(96,x-72),y),(x,y)],fill=tuple(color)+(int(aa*0.42),),width=4)
         r = 5+5*pulse
         d.ellipse([x-r,y-r,x+r,y+r],outline=(222,244,255,aa),width=2)
@@ -147,7 +147,7 @@ def draw_countdown_motion(im, t, u, idx, color):
         xx = 96+(W-192)*(frac)
         spread = 75*ease_out(cp)
         aa = int(100*(1-cp*0.25))
-        d.line([(xx-spread, H-43),(xx+spread,H-43)],fill=tuple(color)+(aa,),width=2)
+        d.line([(xx-spread, H-31),(xx+spread,H-31)],fill=tuple(color)+(aa,),width=2)
 def draw_title(im, t):
     """Cinematic opening: kinetic numeric motif, editorial title, portrait teaser."""
     d = ImageDraw.Draw(im, 'RGBA')
@@ -509,6 +509,8 @@ def render_end(t):
     a = np.array(im, np.float32)
     a = a + _GRAIN[0] * 0.8
     a = np.clip(a, 0, 255)
-    if t > 178.4:
-        a = a * (1.0 - clamp((t - 178.4) / 1.45, 0, 1))
+    fade_duration = min(1.6, max(0.1, E.DUR - T_ENDCARD))
+    fade_start = E.DUR - fade_duration
+    if t > fade_start:
+        a = a * (1.0 - clamp((t - fade_start) / fade_duration, 0, 1))
     return a.astype(np.uint8)

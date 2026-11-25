@@ -304,8 +304,9 @@
     "artist": "White House photo by Eric Draper",
     "credit": "whitehouse.gov - President Bush Welcomes Stanley Cup Champion Anaheim Ducks to the White House",
     "match_method": "wikipedia-pageimage",
-    "local_path": "assets/entities/028.jpg",
-    "rank": 28
+    "rank": 28,
+    "status": "excluded-unverified-portrait",
+    "review_note": "The cached asset is a group/event scene, not a clear individual portrait; excluded conservatively."
   },
   {
     "name": "Elaine Marshall",
@@ -381,8 +382,9 @@
     "artist": "Gleuschk",
     "credit": "Own work",
     "match_method": "wikipedia-pageimage",
-    "local_path": "assets/entities/035.jpg",
-    "rank": 35
+    "rank": 35,
+    "status": "excluded-unverified-identity",
+    "review_note": "Source image depicts Jim Simons, not Marilyn Simons; excluded after contact-sheet review."
   },
   {
     "name": "He Xiangjian",
@@ -641,8 +643,9 @@
     "artist": "Cinévie",
     "credit": "https://www.retronews.fr/journal/cinevie/9-mars-1948/4586/5616906/2",
     "match_method": "commons-exact-title",
-    "local_path": "assets/entities/062.jpg",
-    "rank": 62
+    "rank": 62,
+    "status": "excluded-unverified-identity",
+    "review_note": "Source identifies Jacqueline Donny and Audrey Smith (1948), not Jacqueline Mars; excluded after contact-sheet review."
   },
   {
     "name": "John Mars",
@@ -654,8 +657,9 @@
     "artist": "John Flaxman",
     "credit": "This file was donated to Wikimedia Commons as part of a project by the National Gallery of Art. Please see the Gallery's Open Access Policy.",
     "match_method": "commons-exact-title",
-    "local_path": "assets/entities/063.jpg",
-    "rank": 63
+    "rank": 63,
+    "status": "excluded-unverified-identity",
+    "review_note": "Source is a mythological artwork titled Otus and Ephialtes Holding Mars Captive, not John Mars; excluded after contact-sheet review."
   },
   {
     "name": "Ken Griffin",
@@ -725,8 +729,9 @@
     "artist": "Press Information Department",
     "credit": "pressinform.gov.bd (archive)",
     "match_method": "commons-exact-title",
-    "local_path": "assets/entities/069.jpg",
-    "rank": 69
+    "rank": 69,
+    "status": "excluded-unverified-portrait",
+    "review_note": "The cached asset is a meeting-room group photo with no clear individual portrait; excluded conservatively."
   },
   {
     "name": "Gautam Adani",
@@ -775,8 +780,9 @@
     "artist": "CEO Magazine",
     "credit": "Own work",
     "match_method": "wikipedia-pageimage",
-    "local_path": "assets/entities/075.jpg",
-    "rank": 75
+    "rank": 75,
+    "status": "excluded-unverified-identity",
+    "review_note": "The cached magazine-cover subject could not be verified as Zhang Yiming; conservative fail-closed exclusion."
   },
   {
     "name": "Charles Koch",
@@ -871,8 +877,9 @@
     "artist": "Aevozer",
     "credit": "Own work",
     "match_method": "wikipedia-pageimage",
-    "local_path": "assets/entities/084.jpg",
-    "rank": 84
+    "rank": 84,
+    "status": "excluded-unverified-portrait",
+    "review_note": "The cached asset shows multiple conference attendees rather than a clear individual portrait; excluded conservatively."
   },
   {
     "name": "Carlos Slim Helu",
@@ -962,8 +969,9 @@
     "artist": "Coentor",
     "credit": "Own work",
     "match_method": "wikipedia-pageimage",
-    "local_path": "assets/entities/091.jpg",
-    "rank": 91
+    "rank": 91,
+    "status": "excluded-unverified-identity",
+    "review_note": "Source image depicts a cyclist/event scene rather than a verified portrait of Amancio Ortega; excluded after contact-sheet review."
   },
   {
     "name": "Warren Buffett",
