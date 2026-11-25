@@ -1,6 +1,6 @@
 ---
 name: datavid
-description: Produce ranked data documentaries with procedural 3D towers, image-aware animation, and explicit prevention/QA gates. Use for videos about ranked people, countries, buildings, companies, vehicles, products, or other measurable entities, including when the user gives only a topic.
+description: Guide users from diverse topic discovery through a 10-idea shortlist into ranked data documentaries with procedural 3D towers, image-aware animation, and explicit prevention/QA gates. Use when a user wants a ranked documentary, topic ideas, or production from a selected subject.
 ---
 
 # datavid — ranked 3D tower documentaries
@@ -9,7 +9,7 @@ Render a 3:00 1080p30 master by default. Before each full render, always ask whi
 
 ## Inputs and ranking
 
-A topic is enough to begin. Research one reliable, dated ranking (Forbes, CTBUH, CompaniesMarketCap, official country or industry lists, etc.). Record the source and snapshot date. Do not invent values or images. Sort project data ascending by ranked value so the first entry is #1 (smallest) and the last is #N (largest). For ties, keep source order or apply a documented stable tie-break.
+After the user selects a final-episode idea, research one reliable, dated ranking (Forbes, CTBUH, CompaniesMarketCap, official country or industry lists, etc.). Record the source and snapshot date. Do not invent values or images. Sort project data ascending by ranked value so the first entry is #1 (smallest) and the last is #N (largest). For ties, keep source order or apply a documented stable tie-break.
 
 Each `data.json` item may contain:
 
@@ -23,9 +23,19 @@ Each `data.json` item may contain:
 | `image_query` | Optional precise search phrase to disambiguate the picture. |
 | `country` | Optional country name, used for flag visuals. |
 
+## Guided topic discovery and selection
+
+For a fresh request without a final topic selection, use two explicit choice gates before researching or creating the project:
+
+1. **Offer diverse starting topics.** Present 8 concise, numbered, compelling topic seeds across at least six distinct domains (for example: wealth/business, countries/cities, science/space, wildlife/nature, sports, technology, history/culture, and transport/engineering). Make each seed suitable for an evidence-based ranking and describe its angle in one short phrase. Ask the user to choose one by number/name or supply another domain/topic. Do not start project research, image searches, asset downloads, project setup, storyboard rendering, or video generation yet.
+2. **Offer exactly 10 final-episode ideas.** After the user picks a seed/domain, present exactly ten distinct, numbered ideas within that choice. Each idea must have a strong concise title and one short explanation, including the ranked entities/metric where useful. Prefer measurable, sourceable rankings; do not invent current values, claim that a ranking is verified, or begin researching the list at this ideation stage. Ask the user to select one idea or request a refinement, then wait.
+3. **Enter production only after selection.** Treat the selected idea as the project topic, briefly confirm it, then begin the normal workflow below: research a dated source, validate the metric/data feasibility, create the project, plan visuals, and build the storyboard. If the chosen idea cannot be supported by a credible comparable dataset, explain that and offer a nearby measurable alternative before project creation. Keep the existing explicit storyboard approval, requested-resolution, and QA gates; topic selection is not approval to render.
+
+Use the language of the user for both menus and explanations. If the user already provides a broad seed/topic, use it as the Stage 1 selection and offer its ten final-episode angles; do not discard their input. Skip the menus only when the user explicitly asks to use an exact final topic without brainstorming or selects an idea already offered in the current conversation. Never silently choose on the user's behalf.
+
 ## Workflow
 
-1. Research a dated ranked dataset and save its source URL, units, and snapshot date in the project. For large lists, use the source's JSON API; see `references/data-sourcing.md`.
+1. After the user selects a final idea, research a dated ranked dataset and save its source URL, units, and snapshot date in the project. For large lists, use the source's JSON API; see `references/data-sourcing.md`.
 2. Create the project with `python3 scripts/new_project.py /path/to/project`, then fill `data.json` and `config.json`.
 3. Choose visuals deliberately. Set project-level `visual_mode` to `person`, `country`/`flag`, `vehicle`, `building`, `company`, or `auto`; an item-level `visual_type` overrides it. For a known homogeneous topic, set the explicit project mode rather than relying on `auto`. For mixed lists, tag each row. People require a portrait of that exact person; countries require their flag; vehicles/buildings/products require the named subject; companies use a representative subject image, not an unrelated person. Set `image_query` and `country` when needed to disambiguate.
 4. Run `python3 scripts/datavid/fetch_images.py --project /path/to/project`. It checks Wikipedia page images and Wikimedia Commons, accepts public-domain, CC0, CC BY, or CC BY-SA images, downloads them locally, and writes `image_sources.json` with artist, license, and source page. Review a contact sheet and inspect doubtful matches; never substitute a similarly named person, generic image, or other unrelated result. If no exact, usable image is found, leave the panel blank and document the gap. The renderer has no network dependency. Respect each license and preserve the attribution manifest when redistributing a project. See `references/image-sourcing.md` for resolver behavior and visual-type guidance.
