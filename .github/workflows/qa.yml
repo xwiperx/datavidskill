@@ -1,0 +1,61 @@
+name: Datavid QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: datavid-qa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system media and OCR tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg tesseract-ocr
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip numpy Pillow
+
+      - name: Validate project
+        run: |
+          python scripts/datavid/validate_project.py projects/richest-2026
+        shell: bash
+
+      - name: Regression tests and syntax checks
+        run: |
+          python -m unittest discover -s tests -v
+          python -m py_compile scripts/datavid/*.py
+          bash -n scripts/datavid/export_qualities.sh
+
+      - name: Render and inspect a short production-path smoke clip
+        run: |
+          python scripts/datavid/ci_smoke.py --output "$RUNNER_TEMP/datavid-smoke.mp4" --report-dir "$RUNNER_TEMP/datavid-qa"
+
+      - name: Upload QA reports and smoke clip
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: datavid-qa-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/datavid-smoke.mp4
+            ${{ runner.temp }}/datavid-qa/
+          if-no-files-found: warn
+          retention-days: 7

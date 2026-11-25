@@ -1,0 +1,13 @@
+{
+  "width": 1920,
+  "height": 1080,
+  "boxes": [
+    {"name": "brand_lane", "scene": "countdown", "x": 96, "y": 60, "width": 500, "height": 60},
+    {"name": "rank_lane", "scene": "countdown", "x": 1560, "y": 60, "width": 264, "height": 130},
+    {"name": "active_plate_lane", "scene": "countdown", "x": 930, "y": 190, "width": 520, "height": 520},
+    {"name": "portrait_card", "scene": "countdown", "x": 1480, "y": 270, "width": 344, "height": 410},
+    {"name": "lower_third", "scene": "countdown", "x": 96, "y": 766, "width": 820, "height": 268},
+    {"name": "value_scale", "scene": "countdown", "x": 1394, "y": 940, "width": 430, "height": 80},
+    {"name": "progress_rail", "scene": "countdown", "x": 96, "y": 1058, "width": 1728, "height": 16}
+  ]
+}
