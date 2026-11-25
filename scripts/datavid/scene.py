@@ -46,6 +46,61 @@ def draw_youtube_mark(d, cx, cy, width=64, alpha=255):
     d.rounded_rectangle([x0,y0,x0+w,y0+h],radius=h*0.24,fill=(255,0,0,int(alpha)))
     d.polygon([(cx-w*0.10,cy-h*0.23),(cx-w*0.10,cy+h*0.23),(cx+w*0.29,cy)],
               fill=(255,255,255,int(alpha)))
+
+
+def draw_intro_motion(im, t):
+    """Edge-safe motion accents: sweeping scan, frame ticks and data pulses."""
+    d = ImageDraw.Draw(im, 'RGBA')
+    enter = smoothstep(t / 0.55)
+    exit_a = clamp((11.9 - t) / 0.8, 0, 1)
+    a = int(235 * enter * exit_a)
+    if a <= 0:
+        return
+    # Thin editorial corner brackets stay in the outer safe margins.
+    y0, y1 = 185, 790
+    for x, direction in ((86, 1), (W-86, -1)):
+        d.line([(x, y0), (x, y0+58)], fill=(113,176,231,int(a*0.78)), width=2)
+        d.line([(x, y0), (x+direction*56, y0)], fill=(255,194,88,int(a*0.88)), width=2)
+        d.line([(x, y1-46), (x, y1)], fill=(113,176,231,int(a*0.66)), width=2)
+    # Short scan beam crosses the central field only while no lower-third is present.
+    p = (t * 0.62) % 1.0
+    sx = 180 + p * (W - 360)
+    if 0.6 < t < 7.25:
+        d.line([(sx-54, 720), (sx+54, 720)], fill=(120,220,255,int(a*0.82)), width=3)
+        d.ellipse([sx-7,713,sx+7,727], fill=(226,248,255,int(a*0.98)))
+    # A few animated index markers orbit the main reticle, avoiding the title lockup.
+    if 1.0 < t < 7.2:
+        cx, cy, rr = W/2, 438, 335
+        for j in range(4):
+            ang = t*0.72 + j*math.pi/2
+            x, y = cx+math.cos(ang)*rr, cy+math.sin(ang)*rr
+            d.rounded_rectangle([x-11,y-3,x+11,y+3],radius=3,
+                                fill=(255,194,88,int(a*0.82)))
+    # Restrained floating data sparks confined to the negative-space perimeter.
+    for j in range(18):
+        phase = (t * (0.10 + (j % 4) * 0.025) + j * 0.173) % 1.0
+        x = 120 + ((j * 173) % (W-240))
+        y = 145 + phase * 650
+        if x < 470 or x > 1450:
+            r = 1 + (j % 3)
+            d.ellipse([x-r,y-r,x+r,y+r], fill=(138,202,255,int(a*(0.18+0.12*(j%4)))))
+
+
+def draw_boundary_sweep(im, t, start, end, color=(105,210,255)):
+    """A short, readable light wipe at editorial scene boundaries."""
+    p = (t-start)/(end-start)
+    if not 0 <= p <= 1:
+        return
+    envelope = math.sin(math.pi*p) ** 0.8
+    x = -260 + (W+520)*ease_out(p)
+    d = ImageDraw.Draw(im,'RGBA')
+    aa = int(125*envelope)
+    d.polygon([(x-120,-40),(x-38,-40),(x+230,H+40),(x+148,H+40)],
+              fill=tuple(color)+(int(aa*0.20),))
+    d.line([(x,0),(x+185,H)],fill=tuple(color)+(aa,),width=3)
+    d.line([(x-13,0),(x+172,H)],fill=(245,252,255,int(aa*0.38)),width=1)
+    flare_y = H*(0.18+0.64*p)
+    d.ellipse([x-8,flare_y-8,x+8,flare_y+8],fill=(255,255,255,int(aa*0.72)))
 def draw_title(im, t):
     """Cinematic opening: kinetic numeric motif, editorial title, portrait teaser."""
     d = ImageDraw.Draw(im, 'RGBA')
@@ -85,7 +140,8 @@ def draw_title(im, t):
         ft = font(BEBAS,194)
         while tw(d,title,ft,5)>W-300 and ft.size>66:
             ft=font(BEBAS,ft.size-8)
-        draw_ls(d,(W/2-tw(d,title,ft,5)/2,348+slide),title,ft,(246,249,255),5,alpha=a)
+        settle = 10 * (1 - ease_out(clamp((t-0.55)/1.5,0,1)))
+        draw_ls(d,(W/2-tw(d,title,ft,5)/2,348+slide+settle),title,ft,(246,249,255),5,alpha=a)
         sub = str(CFG.get('title_sub','')).strip()
         if sub:
             fs = font(I_MED,17)
@@ -94,15 +150,16 @@ def draw_title(im, t):
             draw_ls(d,(W/2-tw(d,sub,fs,3.5)/2,568),sub,fs,(152,172,196),3.5,alpha=int(a*0.88))
     # Channel wordmark and YouTube play mark are the hero signature beneath RICHEST.
     if 1.3 < t < 7.6:
-        ba=int(255*clamp((t-1.3)/0.65,0,1)*clamp((7.6-t)/0.6,0,1))
+        brand_p = ease_out(clamp((t-1.3)/0.8,0,1))
+        ba=int(255*brand_p*clamp((7.6-t)/0.6,0,1))
         brand=CFG.get('brand','DATA ZED')
         fb=font(I_BLACK,42)
         textw=tw(d,brand,fb,3.2)
         markw=62
         gap=22
-        left=W/2-(textw+gap+markw)/2
+        left=W/2-(textw+gap+markw)/2 + 22*(1-brand_p)
         draw_ls(d,(left,550),brand,fb,(245,248,255),3.2,alpha=ba)
-        draw_youtube_mark(d,left+textw+gap+markw/2,572,markw,ba)
+        draw_youtube_mark(d,left+textw+gap+markw/2,572,markw*brand_p,ba)
     # Four rounded portrait windows briefly preview the range of the countdown.
     if 2.7 < t < 7.1:
         from PIL import ImageOps
@@ -124,6 +181,22 @@ def draw_title(im, t):
             d.rounded_rectangle([x,655,x+card_w,655+card_h],radius=16,outline=(255,255,255,int(alpha*0.62)),width=2)
             d.rounded_rectangle([x+7,663,x+52,690],radius=9,fill=(4,8,15,int(alpha*0.82)))
             draw_ls(d,(x+16,667),label,font(BEBAS,20),(255,205,110),0,alpha=alpha)
+    # Topic reveal lands between the logo and portrait strip, then clears cleanly.
+    if 4.0 < t < 7.3:
+        ta = int(235*clamp((t-4.0)/0.35,0,1)*clamp((7.3-t)/0.35,0,1))
+        progress = ease_out(clamp((t-4.1)/0.7,0,1))
+        tag = 'GLOBAL BILLIONAIRE RANKING  ·  ESTIMATED NET WORTH'
+        ftick = font(I_SEMI, 13)
+        draw_ls(d,(W/2-tw(d,tag,ftick,2.8)/2,615),tag,ftick,(174,205,235),2.8,alpha=ta)
+        d.line([(W/2-260, 642), (W/2-260+520*progress, 642)], fill=(72,182,239,int(ta*0.9)), width=2)
+    # Countdown premise returns briefly as a compact ticker before the first reveal.
+    if 7.0 < t < 10.9:
+        ta = int(225*clamp((t-7.0)/0.45,0,1)*clamp((10.9-t)/0.5,0,1))
+        progress = ease_out(clamp((t-7.1)/1.0,0,1))
+        d.line([(W/2-220, 790), (W/2-220+440*progress, 790)], fill=(72,182,239,int(ta*0.82)), width=2)
+        tag = 'NET WORTH  /  RANKED FROM 1 TO 100'
+        ftick = font(I_SEMI, 14)
+        draw_ls(d,(W/2-tw(d,tag,ftick,3.4)/2,802),tag,ftick,(174,205,235),3.4,alpha=ta)
     # Source lower third settles before the first rank appears.
     if 7.15 < t < 12.1:
         a = int(255*clamp((t-7.15)/0.75,0,1)*clamp((12.05-t)/0.65,0,1))
@@ -179,6 +252,20 @@ def draw_endcard(im, t):
         return
     d = ImageDraw.Draw(im, 'RGBA')
     a = int(255 * p)
+    # Animated ring, sweep and edge streaks give the closing card a decisive reveal.
+    ep = clamp((t - T_ENDCARD - 0.15) / 2.6, 0, 1)
+    cx, cy = W/2, 440
+    ring_r = 370 + 36 * (1 - ease_out(ep))
+    ring_a = int(a * 0.24 * (1 - 0.25 * ep))
+    d.arc([cx-ring_r,cy-ring_r,cx+ring_r,cy+ring_r], start=198+t*32, end=325+t*32,
+          fill=(85,178,238,ring_a), width=2)
+    d.arc([cx-ring_r-18,cy-ring_r-18,cx+ring_r+18,cy+ring_r+18], start=24-t*25, end=76-t*25,
+          fill=(255,194,88,int(ring_a*0.82)), width=2)
+    sweep_x = -220 + (W+440) * ease_out(clamp((t-T_ENDCARD-0.25)/2.1,0,1))
+    if sweep_x < W+180:
+        d.polygon([(sweep_x-125,235),(sweep_x-62,235),(sweep_x+132,805),(sweep_x+69,805)],
+                  fill=(93,188,255,int(a*0.12)))
+        d.line([(sweep_x,245),(sweep_x+72,790)],fill=(164,224,255,int(a*0.32)),width=2)
     n = len(PEOPLE)
     total_w = 1080
     x0 = W / 2 - total_w / 2
@@ -189,7 +276,8 @@ def draw_endcard(im, t):
         bw = total_w / n + 0.6
         hh = 8 + max_h * (HEIGHTS[i] - H_MIN) / (max(HEIGHTS) - H_MIN)
         col = tier_color(pp['worth'])
-        d.rectangle([bx, base_y - hh, bx + bw, base_y], fill=col + (int(a * 0.92),))
+        reveal = ease_out(clamp((t - T_ENDCARD - 0.25 - i*0.012) / 1.05, 0, 1))
+        d.rectangle([bx, base_y - hh*reveal, bx + bw, base_y], fill=col + (int(a * 0.92*reveal),))
     d.line([(x0, base_y + 1), (x0 + total_w, base_y + 1)], fill=(255, 255, 255, int(a * 0.22)), width=1)
     f5 = font(I_MED, 13)
     draw_ls(d, (x0, base_y + 13), "01", f5, (118, 134, 156), 2.0, alpha=int(a * 0.8))
@@ -220,6 +308,10 @@ def draw_endcard(im, t):
     left=W/2-(bw+gap+markw)/2
     draw_ls(d,(left,678),brand,fb,(238,244,255),5,alpha=int(a*0.98))
     draw_youtube_mark(d,left+bw+gap+markw/2,703,markw,int(a*0.98))
+    # Closing pulse: soft horizontal highlights sweep over the ranked value ribbon.
+    pulse_x = x0 + ((t-T_ENDCARD)*540) % total_w
+    d.line([(pulse_x,base_y-max_h-12),(pulse_x,base_y+4)],
+           fill=(232,246,255,int(a*0.42)),width=2)
 
 
 def bloom(arr, strength=0.85, thresh=0.30):
@@ -301,9 +393,15 @@ def render(t, fi=0):
         pr = int(220 * (1 - clamp((t - T_FINALE_END) / 1.0, 0, 1)))
         Hd.draw_progress(out, 1.0, tier_color(p['worth']), alpha=pr)
 
+    if t < T_INTRO:
+        draw_intro_motion(out, t)
     draw_title(out, t)
     if t >= T_COUNT_END:
         draw_finale(out, t, u)
+    if t < T_INTRO:
+        draw_boundary_sweep(out,t,11.15,12.0,(94,205,255))
+    elif T_ENDCARD-1.25 <= t < T_ENDCARD:
+        draw_boundary_sweep(out,t,T_ENDCARD-1.25,T_ENDCARD,(255,194,88))
 
     a = np.array(out, np.float32)
     a = a + _GRAIN[fi % len(_GRAIN)] * 0.8
