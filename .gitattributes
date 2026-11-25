@@ -1,1 +1,2 @@
 projects/richest-2026/output/*.mp4 filter=lfs diff=lfs merge=lfs -text
+projects/richest-2026/out/*.mp4 filter=lfs diff=lfs merge=lfs -text
