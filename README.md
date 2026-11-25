@@ -8,6 +8,10 @@ The reference film in `projects/richest-2026` is a 3:00 documentary on the Forbe
 
 ![preview](docs/preview.jpg)
 
+## Use it as a skill
+
+`dist/datavid.skill` is the packaged skill (SKILL.md + engine + fonts + references). Attach it to a Manus task and say what you want a film about — e.g. "a 3-minute video of the 100 tallest buildings" — and the agent will source the data, build the project and render the MP4.
+
 ## Quick start
 
 ```bash
