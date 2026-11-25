@@ -47,8 +47,8 @@ def draw_topbar(im, p, idx, alpha=255, total=100):
     a = alpha
     # left brand
     d.rectangle([96, 74, 102, 88], fill=(255, 194, 88, a))
-    draw_ls(d, (118, 72), E.cfg('brand', "DATA  VIDEO  ENGINE"), font(I_SEMI, 15),
-            (150, 166, 188), 3.4, alpha=a)
+    draw_ls(d, (118, 72), E.cfg('brand', "DATA  VIDEO  ENGINE"), font(I_SEMI, 20),
+            (188, 203, 224), 3.4, alpha=a)
     # right rank
     f_lab = font(I_SEMI, 14)
     draw_ls(d, (W - 96 - 168, 66), "RANK", f_lab, (126, 142, 164), 3.6, alpha=a)

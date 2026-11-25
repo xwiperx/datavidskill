@@ -64,15 +64,18 @@ PER_BAR = (T_COUNT_END - T_INTRO) / N
 GAMMA = float(cfg('gamma', 0.72))
 
 # ---------------------------------------------------------------- layout
-DX, DZ = 6.00, 7.00
+DX, DZ = 4.45, 0.00
 BW, BD = 3.60, 3.60
-H_MIN, H_RANGE = 3.1, 27.0
-HEIGHTS = [H_MIN + H_RANGE * ((p['worth'] / MAXW) ** GAMMA) for p in PEOPLE]
+H_MIN, H_RANGE = float(cfg('height_min', 2.8)), float(cfg('height_range', 31.0))
+RANK_MIX = max(0.0, min(1.0, float(cfg('height_rank_mix', 0.42))))
+HEIGHTS = [H_MIN + H_RANGE * (
+    (1.0 - RANK_MIX) * ((p['worth'] / MAXW) ** GAMMA) +
+    RANK_MIX * (i / max(1, N - 1))) for i, p in enumerate(PEOPLE)]
 H_MAX = max(HEIGHTS)
 DL = math.hypot(DX, DZ)
-DIRV = np.array([DX / DL, 0.0, -DZ / DL])
-LATV = np.array([DZ / DL, 0.0, DX / DL])
-STEP = np.array([DX, 0.0, -DZ])
+DIRV = np.array([0.0, 0.0, -1.0])
+LATV = np.array([1.0, 0.0, 0.0])
+STEP = np.array([DX, 0.0, 0.0])
 
 # ---------------------------------------------------------------- palette
 BG_TOP = (3, 5, 11)
@@ -123,6 +126,31 @@ def tier_color(worth):
             f = (t - pos[k]) / max(1e-6, pos[k + 1] - pos[k])
             return mix(TIER[k], TIER[k + 1], clamp(f, 0, 1))
     return TIER[-1]
+
+
+_IMAGE_CACHE = {}
+_IMAGE_MANIFEST_PATH = os.path.join(ROOT, 'image_sources.json')
+try:
+    IMAGE_MANIFEST = json.load(open(_IMAGE_MANIFEST_PATH))
+except (OSError, ValueError):
+    IMAGE_MANIFEST = []
+
+
+def item_image(index):
+    """Return the locally cached Wikimedia image for a ranked entity, if available."""
+    if index not in _IMAGE_CACHE:
+        image = None
+        if 0 <= index < len(IMAGE_MANIFEST):
+            rel = IMAGE_MANIFEST[index].get('local_path')
+            if rel:
+                path = os.path.join(ROOT, rel)
+                try:
+                    image = Image.open(path).convert('RGB')
+                    image.thumbnail((320, 400), Image.Resampling.LANCZOS)
+                except (OSError, ValueError):
+                    image = None
+        _IMAGE_CACHE[index] = image
+    return _IMAGE_CACHE[index]
 
 
 # ---------------------------------------------------------------- fonts
@@ -210,7 +238,7 @@ class Cam:
 
 # ---------------------------------------------------------------- scene math
 def bar_base(i):
-    return np.array([i * DX, 0.0, -i * DZ])
+    return np.array([i * DX, 0.0, 0.0])
 
 
 def height_at(u):
@@ -220,14 +248,18 @@ def height_at(u):
 
 
 def cam_state(u, rise=0.0, back=0.0, side=0.0, tilt=0.0, fov=37.0, look=1.0):
-    h = height_at(u)
-    base = np.array([u * DX, 0.0, -u * DZ])
-    tgt_y = h - min(h * 0.50, 4.6) + tilt
-    dist = 21.0 + h * 0.30 + back
-    cam_y = tgt_y + 0.14 * dist + rise
-    pos = base - DIRV * dist + LATV * (0.58 * dist + side) + np.array([0, cam_y, 0])
+    lead = float(cfg('camera_lead_steps', 3.5))
+    base = np.array([(u - lead) * DX, 0.0, 0.0])
+    # Fixed vertical framing keeps true tower-height differences visible instead
+    # of auto-zooming every item to the same apparent height. The camera looks
+    # straight down the parade lane, so the active front face stays head-on.
+    tgt_y = float(cfg('camera_target_y', 14.2)) + tilt
+    dist = float(cfg('camera_distance', 46.0)) + back
+    cam_y = tgt_y + 0.11 * dist + rise
+    lateral = 0.0 if cfg('camera_front', True) else 0.36 * dist
+    pos = base - DIRV * dist + LATV * (lateral + side) + np.array([0, cam_y, 0])
     tgt = base + DIRV * (0.78 * dist * look) + np.array([0, tgt_y, 0])
-    return Cam(pos, tgt, fov)
+    return Cam(pos, tgt, float(cfg('camera_fov', fov)))
 
 
 # ---------------------------------------------------------------- drawing utils
@@ -542,106 +574,115 @@ def text_img(text, fnt_path, size, color, pad=8, ls=0, align='center'):
 
 
 def draw_ground_fx(im, emissive, cam, u, order):
+    """Subtle softened-square footprint glow beneath each visible column."""
     for vz, i in order:
-        if vz > 95:
+        if vz > 100:
             continue
-        h = HEIGHTS[i]
         col = tier_color(PEOPLE[i]['worth'])
-        front, right, top = bar_faces(i, h)
-        base_q = np.array([front[0], front[1],
-                           [front[1][0], -h * 0.85, front[1][2]],
-                           [front[0][0], -h * 0.85, front[0][2]]])
-        pq = cam.project(base_q)
-        if np.min(pq[:, 2]) < 0.8:
-            continue
-        fade = clamp(1.0 - vz / 95.0, 0, 1)
-        fill_quad_fade(im, pq, mix(col, (255, 255, 255), 0.30), col, int(52 * fade), 0, 2.4)
-        c = cam.project(np.array([bar_base(i)]))[0]
-        rad = cam.f * (BW * 2.2) / max(7.0, c[2])
-        add_glow(emissive, c[0], c[1], rad, col, int(40 * fade), 0.26)
-
-
+        bevel = min(float(cfg('bevel_radius',0.42)), BW*0.22, BD*0.22)
+        xz=[(-BW/2+bevel,-BD/2),(BW/2-bevel,-BD/2),(BW/2,-BD/2+bevel),
+            (BW/2,BD/2-bevel),(BW/2-bevel,BD/2),(-BW/2+bevel,BD/2),
+            (-BW/2,BD/2-bevel),(-BW/2,-BD/2+bevel)]
+        pts=np.asarray([bar_base(i)+np.array([x,0.025,z]) for x,z in xz])
+        pr=cam.project(pts)
+        if np.min(pr[:,2])<0.8: continue
+        fade=clamp(1.0-vz/100.0,0,1)
+        d=ImageDraw.Draw(im,'RGBA')
+        d.polygon([tuple(q[:2]) for q in pr],fill=col+(int(15*fade),),outline=col+(int(70*fade),))
+        c=cam.project(np.array([bar_base(i)]))[0]
+        add_glow(emissive,c[0],c[1],cam.f*(BW*1.5)/max(7.0,c[2]),col,int(30*fade),0.28)
 def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
-    p = PEOPLE[i]
-    col = tier_color(p['worth'])
-    fog = clamp(1.0 - math.exp(-max(0.0, vz - 4.0) / 135.0), 0, 0.88)
-    dim = 1.0 - 0.62 * clamp((i - u - 1.0) / 6.0, 0, 1)
-    front, right, top = bar_faces(i, h)
-    pf = cam.project(np.array(front))
-    pr = cam.project(np.array(right))
-    pt = cam.project(np.array(top))
-    if np.min(pf[:, 2]) < 0.8:
-        return
-    if max(pf[:, 0].max(), pr[:, 0].max(), pt[:, 0].max()) < -60:
-        return
-    if min(pf[:, 0].min(), pr[:, 0].min(), pt[:, 0].min()) > W + 60:
-        return
-
-    b_front = 0.26 + 0.95 * max(0.0, float(-DIRV @ LIGHT))
-    b_right = 0.22 + 0.95 * max(0.0, float(LATV @ LIGHT))
-    b_top = 0.42 + 0.80 * max(0.0, float(_UP @ LIGHT))
-
-    def sh(c, b, d):
-        c = tuple(int(clamp(v * b * d, 0, 255)) for v in c)
-        return mix(c, BG_HOR, fog * 0.9)
-
-    body_top = sh(mix(col, (255, 255, 255), 0.05), b_front * 0.95, dim)
-    body_bot = sh(mix(col, (2, 4, 9), 0.93), b_front * 0.34, dim)
-    fill_quad_fade(im, pf, body_top, body_bot, 255, 255, 4.2)
-    fill_quad_fade(im, pr, sh(mix(col, (255, 255, 255), 0.02), b_right, dim),
-                   sh(mix(col, (2, 4, 9), 0.95), b_right * 0.30, dim), 255, 255, 4.2)
-    fill_quad_fade(im, pt, sh(mix(col, (255, 255, 255), 0.34), b_top * 0.98, dim),
-                   sh(mix(col, (255, 255, 255), 0.06), b_top * 0.80, dim), 255, 255, 1.0)
-
-    # horizontal floor bands for scale
-    if vz < 75 and h > 2.4:
-        nb = int(clamp(h / 1.05, 3, 34))
-        pff = [tuple(pf[3][:2]), tuple(pf[2][:2]), tuple(pf[1][:2]), tuple(pf[0][:2])]
-        if pff[0][0] > pff[1][0]:
-            pff = [pff[1], pff[0], pff[3], pff[2]]
-        face_bands(im, pff, nb, (2, 4, 8, int(46 * dim * (1 - fog))), 1)
-
-
-    cb = h * 0.90
-    cq = np.array([[front[0][0], cb, front[0][2]], [front[1][0], cb, front[1][2]],
-                   front[2], front[3]])
-    pcq = cam.project(cq)
-    if np.min(pcq[:, 2]) > 0.8:
-        fill_quad_fade(im, pcq, sh(mix(col, (255, 255, 255), 0.62), b_front * 1.05, dim),
-                       sh(mix(col, (255, 255, 255), 0.18), b_front * 0.95, dim), 255, 255, 0.9)
-
-    d2 = ImageDraw.Draw(im, 'RGBA')
-    ea = int(105 * (1 - fog) * dim)
-    d2.line([tuple(pf[3][:2]), tuple(pf[2][:2])], fill=tuple(mix(col, (255, 255, 255), 0.8)) + (int(ea * 1.9),), width=2)
-    d2.line([tuple(pf[2][:2]), tuple(pf[1][:2])], fill=(255, 255, 255, int(ea * 0.7)), width=2)
-    d2.line([tuple(pt[3][:2]), tuple(pt[2][:2]), tuple(pt[1][:2]), tuple(pt[0][:2])],
-            fill=tuple(mix(col, (255, 255, 255), 0.72)) + (int(235 * (1 - fog)),), width=2)
-    d2.line([tuple(pf[3][:2]), tuple(pf[0][:2])], fill=tuple(mix(col, (255, 255, 255), 0.35)) + (int(ea * 0.8),), width=1)
-
-    if show_rank and vz < 52 and h > 1.2:
-        ny0, ny1 = h - 3.35, h - 1.05
-        q = np.array([[front[0][0], ny1, front[0][2]], [front[1][0], ny1, front[1][2]],
-                      [front[1][0], ny0, front[1][2]], [front[0][0], ny0, front[0][2]]])
-        pq = cam.project(q)
-        if np.min(pq[:, 2]) > 0.8:
-            wpx = abs(pq[1][0] - pq[0][0])
-            hpx = abs(pq[3][1] - pq[0][1])
-            if wpx > 44 and hpx > 26:
-                qq = [tuple(pq[0][:2]), tuple(pq[1][:2]), tuple(pq[2][:2]), tuple(pq[3][:2])]
-                if qq[0][0] > qq[1][0]:
-                    qq = [qq[1], qq[0], qq[3], qq[2]]
-                text_on_quad(im, str(p['pos']).zfill(2), BEBAS, qq,
-                             tuple(int(v) for v in mix(col, (255, 255, 255), 0.82)) + (235,),
-                             int(225 * (1 - fog) * dim), 0.56, 0.46)
-
-    cx, cy = float(pt[:, 0].mean()), float(pt[:, 1].mean())
-    rad = float(np.ptp(pt[:, 0])) * 1.15 + 24
-    add_glow(emissive, cx, cy, rad, col, int(115 * (1 - fog)))
-    add_glow(emissive, cx, cy, rad * 0.28, (255, 255, 255), int(75 * (1 - fog)), 0.5)
-
+    """Draw a softened chamfered cuboid, with a fixed-size image high on its front."""
+    if h<=0.05: return
+    p=PEOPLE[i]; col=tier_color(p['worth'])
+    fog=clamp(1.0-math.exp(-max(0.0,vz-4.0)/150.0),0,0.82)
+    dim=1.0-0.48*clamp((i-u-2.0)/7.0,0,1)
+    bevel=min(float(cfg('bevel_radius',0.42)),BW*0.22,BD*0.22)
+    if str(cfg('geometry','beveled_box')).lower()=='cylinder':
+        radius=min(BW,BD)*0.5
+        xz=[(radius*math.cos(math.tau*k/48),radius*math.sin(math.tau*k/48)) for k in range(48)]
+    else:
+        xz=[(-BW/2+bevel,BD/2),(BW/2-bevel,BD/2),(BW/2,BD/2-bevel),
+            (BW/2,-BD/2+bevel),(BW/2-bevel,-BD/2),(-BW/2+bevel,-BD/2),
+            (-BW/2,-BD/2+bevel),(-BW/2,BD/2-bevel)]
+    ys=[0.0,min(bevel*0.52,h*0.18),max(min(bevel*0.52,h*0.18),h-min(bevel*0.52,h*0.18)),h]
+    scales=[0.94,1.0,1.0,0.94]
+    rings=[]
+    for y,sc in zip(ys,scales):
+        rings.append([bar_base(i)+np.array([x*sc,y,z*sc]) for x,z in xz])
+    material=str(cfg('material','glass')).lower()
+    alpha={'glass':154,'metal':232,'solid':246}.get(material,154)
+    surfaces=[]
+    for r in range(3):
+        for k in range(len(xz)):
+            j=(k+1)%len(xz)
+            q3=np.asarray([rings[r][k],rings[r][j],rings[r+1][j],rings[r+1][k]])
+            pv=cam.project(q3)
+            if np.min(pv[:,2])<0.8: continue
+            dx=xz[j][0]-xz[k][0]; dz=xz[j][1]-xz[k][1]
+            normal=np.array([-dz,0.0,dx]); normal/=max(1e-8,np.linalg.norm(normal))
+            surfaces.append((float(np.mean(pv[:,2])),r,k,pv,normal))
+    for _,r,k,pv,normal in sorted(surfaces,key=lambda row:row[0],reverse=True):
+        lambert=max(0.0,float(normal@LIGHT)); shade=0.34+0.72*lambert
+        hi=mix(col,(255,255,255),0.25 if material=='glass' else 0.10)
+        lo=mix(col,(2,5,14),0.58 if material=='glass' else 0.82)
+        hi=mix(tuple(int(clamp(v*shade*dim,0,255)) for v in hi),BG_HOR,fog*0.7)
+        lo=mix(tuple(int(clamp(v*shade*dim,0,255)) for v in lo),BG_HOR,fog*0.7)
+        fa=int(alpha*(1-0.42*fog)*dim)
+        fill_quad_fade(im,pv[:,:2],hi,lo,fa,fa,1.25)
+        d=ImageDraw.Draw(im,'RGBA')
+        d.line([tuple(q[:2]) for q in pv]+[tuple(pv[0,:2])],
+               fill=mix(col,(255,255,255),0.52)+(int(86*(1-fog)*dim),),width=1)
+    top=cam.project(np.asarray(rings[-1]))
+    if np.min(top[:,2])>0.8:
+        tc=mix(col,(240,248,255),0.42 if material=='glass' else 0.22)
+        d=ImageDraw.Draw(im,'RGBA')
+        d.polygon([tuple(q[:2]) for q in top],fill=tc+(int(alpha*0.92),),outline=(240,248,255,int(166*(1-fog))))
+        add_glow(emissive,float(top[:,0].mean()),float(top[:,1].mean()),
+                 float(np.ptp(top[:,0]))*0.7+12,col,int(74*(1-fog)),0.28)
+    portrait=item_image(i)
+    if portrait is not None and h>=1.95:
+        side=min(1.56,BW-2*bevel-0.24,h-0.24)
+        if str(cfg('image_placement','near_top')).lower()=='near_top':
+            y1=h-0.34; y0=y1-side
+        else:
+            y0=(h-side)/2; y1=y0+side
+        z=BD/2+0.012
+        x0,x1=-side/2,side/2
+        quad3=[bar_base(i)+np.array([x0,y1,z]),bar_base(i)+np.array([x1,y1,z]),
+               bar_base(i)+np.array([x1,y0,z]),bar_base(i)+np.array([x0,y0,z])]
+        pq=cam.project(np.asarray(quad3))
+        if np.min(pq[:,2])>0.8 and abs(pq[1,0]-pq[0,0])>12:
+            from PIL import ImageOps
+            pane=ImageOps.fit(portrait,(360,360),method=Image.Resampling.LANCZOS,centering=(0.5,0.38)).convert('RGBA')
+            mask=Image.new('L',pane.size,0)
+            if str(cfg('image_shape','square')).lower()=='circle':
+                ImageDraw.Draw(mask).ellipse((1,1,358,358),fill=255)
+            else:
+                ImageDraw.Draw(mask).rounded_rectangle((1,1,358,358),radius=22,fill=255)
+            pane.putalpha(mask)
+            paste_quad(im,pane,pq[:,:2],int(245*(1-fog)*dim))
+            d=ImageDraw.Draw(im,'RGBA')
+            d.line([tuple(q[:2]) for q in pq]+[tuple(pq[0,:2])],
+                   fill=mix(col,(255,255,255),0.68)+(int(225*(1-fog)),),width=2)
+    if show_rank and vz<80 and h>1.45:
+        side=0.92; y0=min(0.88,h*0.26); y1=y0+0.47; z=BD/2+0.016
+        quad=cam.project(np.asarray([bar_base(i)+np.array([-side/2,y1,z]),bar_base(i)+np.array([side/2,y1,z]),
+             bar_base(i)+np.array([side/2,y0,z]),bar_base(i)+np.array([-side/2,y0,z])]))
+        if np.min(quad[:,2])>0.8:
+            text_on_quad(im,str(p['pos']).zfill(2),BEBAS,quad[:,:2],(245,248,255,235),
+                         int(218*(1-fog)*dim),0.60,0.58)
 
 def draw_bars(im, cam, u, emissive, order, show_rank=True):
+    """Reveal only the current item; animate its height up from the floor."""
+    active = min(N-1, max(0, int(u)))
+    fraction = clamp(u - active, 0.0, 1.0)
+    rise_fraction = max(0.1, min(1.0, float(cfg('growth_fraction', 0.46))))
+    growth = smoothstep(fraction / rise_fraction)
     for vz, i in reversed(order):
-        if i < u - 0.75:
+        if i > active or i < active - 9:
             continue
-        draw_one_bar(im, emissive, cam, i, HEIGHTS[i], u, vz, show_rank)
+        h = HEIGHTS[i] * (growth if i == active else 1.0)
+        if i == active:
+            h = max(0.08, h)
+        draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank)

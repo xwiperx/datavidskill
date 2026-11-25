@@ -30,59 +30,116 @@ def reveal_of(t, i):
 
 def scene_cam(t, u):
     if t < T_INTRO:
-        p = smoothstep((t - 2.8) / 8.6)
+        p = smoothstep((t - 0.5) / 9.8)
         e = (1 - p) ** 2
-        return cam_state(0, rise=52 * e, back=105 * e, side=18 * e, tilt=6 * e, fov=37 + 6 * e)
+        return cam_state(0, rise=27 * e, back=72 * e, side=0, tilt=3.0 * e, fov=39)
     if t > T_COUNT_END:
         p = smoothstep((t - T_COUNT_END) / 8.0)
-        return cam_state(u, rise=-2.6 * p, back=7.0 * p, tilt=-1.8 * p)
-    return cam_state(u)
+        return cam_state(u, rise=-1.8 * p, back=4.0 * p, side=0, tilt=-0.8 * p)
+    return cam_state(u, side=0)
 
 
+def draw_youtube_mark(d, cx, cy, width=64, alpha=255):
+    """Simple red rounded play mark used beside the channel name."""
+    w=float(width); h=w*0.69
+    x0,y0=cx-w/2,cy-h/2
+    d.rounded_rectangle([x0,y0,x0+w,y0+h],radius=h*0.24,fill=(255,0,0,int(alpha)))
+    d.polygon([(cx-w*0.10,cy-h*0.23),(cx-w*0.10,cy+h*0.23),(cx+w*0.29,cy)],
+              fill=(255,255,255,int(alpha)))
 def draw_title(im, t):
-    """Intro typography."""
+    """Cinematic opening: kinetic numeric motif, editorial title, portrait teaser."""
     d = ImageDraw.Draw(im, 'RGBA')
-    p0 = clamp(t / 0.9, 0, 1)
-    if 0.15 < t < 7.0:
-        wdt = 520 * ease_out(p0)
-        cy = 300
-        a = int(255 * clamp((7.0 - t) / 0.8, 0, 1))
-        d.line([(W / 2 - wdt, cy), (W / 2 + wdt, cy)], fill=(255, 194, 88, a), width=2)
-    if 0.6 < t < 7.4:
-        a1 = int(255 * clamp((t - 0.6) / 0.8, 0, 1) * clamp((7.1 - t) / 0.9, 0, 1))
-        off = 26 * (1 - ease_out(clamp((t - 0.6) / 1.1, 0, 1)))
-        s1 = CFG.get('title_top', "THE  WORLD'S")
-        f1 = font(BEBAS, 74)
-        while tw(d, s1, f1, 14) > W - 320 and f1.size > 30:
-            f1 = font(BEBAS, f1.size - 4)
-        x1 = W / 2 - tw(d, s1, f1, 14) / 2
-        draw_ls(d, (x1, 330 + off), s1, f1, (176, 192, 214), 14, alpha=a1)
-        s2 = CFG.get('title_big', "RICHEST")
-        f2 = font(BEBAS, 196)
-        while tw(d, s2, f2, 6) > W - 260 and f2.size > 60:
-            f2 = font(BEBAS, f2.size - 8)
-        x2 = W / 2 - tw(d, s2, f2, 6) / 2
-        draw_ls(d, (x2, 396 + off), s2, f2, (244, 248, 255), 6, alpha=a1)
-    if 2.0 < t < 7.2:
-        a2 = int(255 * clamp((t - 2.0) / 0.9, 0, 1) * clamp((6.9 - t) / 0.9, 0, 1))
-        s3 = CFG.get('title_sub', "")
-        f3 = font(I_SEMI, 20)
-        while tw(d, s3, f3, 5.2) > W - 360 and f3.size > 11:
-            f3 = font(I_SEMI, f3.size - 1)
-        x3 = W / 2 - tw(d, s3, f3, 5.2) / 2
-        draw_ls(d, (x3, 636), s3, f3, (150, 166, 188), 5.2, alpha=a2)
-    # lower third during city rise
-    if 7.2 < t < 12.2:
-        a3 = int(255 * clamp((t - 7.2) / 0.8, 0, 1) * clamp((12.1 - t) / 0.7, 0, 1))
-        d.rectangle([96, 862, 100, 942], fill=(255, 194, 88, a3))
-        draw_ls(d, (122, 866), CFG.get('lower_kicker', f"RANKED #1 TO #{N}"), font(I_SEMI, 17),
-                (255, 194, 88), 3.6, alpha=a3)
-        draw_ls(d, (122, 896), CFG.get('lower_mid', "BY ESTIMATED NET WORTH"), font(I_MED, 17),
-                (198, 210, 226), 3.0, alpha=a3)
-        draw_ls(d, (122, 926), CFG.get('source_line', ""), font(I_REG, 15), (126, 142, 164), 2.4,
-                alpha=int(a3 * 0.9))
-
-
+    # Oversized low-contrast number field creates depth without hiding the scene.
+    pulse = 0.5 + 0.5 * math.sin(t * 1.7)
+    big_alpha = int(32 * clamp((t + 0.2) / 0.6, 0, 1) * clamp((8.4 - t) / 1.0, 0, 1))
+    fbg = font(I_BLACK, 530)
+    number_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
+    number_draw = ImageDraw.Draw(number_layer)
+    number_draw.text((W/2, 225 + math.sin(t*0.6)*12), '100', font=fbg,
+                     fill=(124, 178, 236, int(big_alpha * (0.72 + pulse*0.25))), anchor='mm',
+                     stroke_width=2, stroke_fill=(255, 194, 88, int(big_alpha*0.35)))
+    im.paste(number_layer, (0, 0), number_layer)
+    d = ImageDraw.Draw(im, 'RGBA')
+    # Sweeping circular reticle and tick marks establish a documentary/data tone.
+    ring_a = int(115 * clamp(t/0.8, 0, 1) * clamp((7.6-t)/1.0, 0, 1))
+    if ring_a > 0:
+        cx, cy = W/2, 438
+        rr = 294 + 10*math.sin(t*1.1)
+        d.arc([cx-rr, cy-rr, cx+rr, cy+rr], start=204 + t*10, end=336 + t*10,
+              fill=(90, 172, 228, ring_a), width=2)
+        d.arc([cx-rr-16, cy-rr-16, cx+rr+16, cy+rr+16], start=30-t*8, end=95-t*8,
+              fill=(255, 194, 88, int(ring_a*0.82)), width=2)
+        for j in range(61):
+            ang = (j/60.0)*math.tau - math.pi/2 + t*0.12
+            r0, r1 = rr + (8 if j % 5 == 0 else 13), rr + 19
+            x0, y0 = cx+math.cos(ang)*r0, cy+math.sin(ang)*r0
+            x1, y1 = cx+math.cos(ang)*r1, cy+math.sin(ang)*r1
+            d.line([(x0,y0),(x1,y1)], fill=(152,190,226,int(ring_a*(0.8 if j%5==0 else 0.35))), width=2 if j%5==0 else 1)
+    # Thin gold sweep moves across the image as the title resolves.
+    if 0.25 < t < 7.5:
+        p = ease_out(clamp((t-0.25)/1.4,0,1))
+        half = 640*p
+        yline = 302 + 5*math.sin(t*1.2)
+        a = int(210*clamp((7.5-t)/0.8,0,1))
+        d.line([(W/2-half,yline),(W/2+half,yline)], fill=(255,194,88,a), width=2)
+        d.ellipse([W/2+half-4,yline-4,W/2+half+4,yline+4], fill=(255,238,192,a))
+    # Main title rises into its editorial lockup.
+    if 0.55 < t < 7.5:
+        a = int(255*clamp((t-0.55)/0.8,0,1)*clamp((7.35-t)/0.8,0,1))
+        slide = 42*(1-ease_out(clamp((t-0.55)/1.2,0,1)))
+        kicker = CFG.get('title_top', "THE WORLD'S")
+        fk = font(I_SEMI, 19)
+        draw_ls(d,(W/2-tw(d,kicker,fk,6)/2,326+slide),kicker,fk,(200,215,235),6,alpha=a)
+        title = CFG.get('title_big','RICHEST')
+        ft = font(BEBAS,194)
+        while tw(d,title,ft,5)>W-300 and ft.size>66:
+            ft=font(BEBAS,ft.size-8)
+        draw_ls(d,(W/2-tw(d,title,ft,5)/2,365+slide),title,ft,(246,249,255),5,alpha=a)
+        sub = str(CFG.get('title_sub','')).strip()
+        if sub:
+            fs = font(I_MED,17)
+            while tw(d,sub,fs,3.5)>W-360 and fs.size>10:
+                fs=font(I_MED,fs.size-1)
+            draw_ls(d,(W/2-tw(d,sub,fs,3.5)/2,568),sub,fs,(152,172,196),3.5,alpha=int(a*0.88))
+    # Channel wordmark and YouTube play mark are the hero signature beneath RICHEST.
+    if 1.3 < t < 7.6:
+        ba=int(255*clamp((t-1.3)/0.65,0,1)*clamp((7.6-t)/0.6,0,1))
+        brand=CFG.get('brand','DATA ZED')
+        fb=font(I_BLACK,42)
+        textw=tw(d,brand,fb,3.2)
+        markw=62
+        gap=22
+        left=W/2-(textw+gap+markw)/2
+        draw_ls(d,(left,530),brand,fb,(245,248,255),3.2,alpha=ba)
+        draw_youtube_mark(d,left+textw+gap+markw/2,552,markw,ba)
+    # Four rounded portrait windows briefly preview the range of the countdown.
+    if 2.7 < t < 7.1:
+        from PIL import ImageOps
+        alpha = int(225*clamp((t-2.7)/0.65,0,1)*clamp((7.1-t)/0.55,0,1))
+        ids = [max(0,N-1), max(0,int(N*0.74)), max(0,int(N*0.49)), 0]
+        card_w, card_h = 146, 122
+        gap = 24
+        previews = [(idx, E.item_image(idx)) for idx in ids]
+        previews = [(idx, imsrc) for idx, imsrc in previews if imsrc is not None]
+        x0 = W/2 - (len(previews)*card_w+max(0,len(previews)-1)*gap)/2
+        for k, (idx, imsrc) in enumerate(previews):
+            label = f'#{idx+1:02d}'
+            x = int(x0+k*(card_w+gap))
+            pane = ImageOps.fit(imsrc,(card_w,card_h),method=Image.Resampling.LANCZOS,centering=(0.5,0.34)).convert('RGBA')
+            mask = Image.new('L',pane.size,0)
+            ImageDraw.Draw(mask).rounded_rectangle((0,0,card_w-1,card_h-1),radius=16,fill=alpha)
+            pane.putalpha(mask)
+            im.paste(pane,(x,655),pane)
+            d.rounded_rectangle([x,655,x+card_w,655+card_h],radius=16,outline=(255,255,255,int(alpha*0.62)),width=2)
+            d.rounded_rectangle([x+7,663,x+52,690],radius=9,fill=(4,8,15,int(alpha*0.82)))
+            draw_ls(d,(x+16,667),label,font(BEBAS,20),(255,205,110),0,alpha=alpha)
+    # Source lower third settles before the first rank appears.
+    if 7.15 < t < 12.1:
+        a = int(255*clamp((t-7.15)/0.75,0,1)*clamp((12.05-t)/0.65,0,1))
+        d.rounded_rectangle([94,850,98,958],radius=2,fill=(255,194,88,a))
+        draw_ls(d,(122,858),CFG.get('lower_kicker',f'RANKED #1 TO #{N}'),font(I_SEMI,17),(255,194,88),3.6,alpha=a)
+        draw_ls(d,(122,890),CFG.get('lower_mid','BY ESTIMATED NET WORTH'),font(I_MED,16),(205,218,236),3.0,alpha=a)
+        draw_ls(d,(122,922),CFG.get('source_line',''),font(I_REG,14),(126,142,164),2.4,alpha=int(a*0.9))
 def draw_finale(im, t, u):
     d = ImageDraw.Draw(im, 'RGBA')
     p = clamp((t - T_COUNT_END - 0.9) / 1.4, 0, 1)
@@ -166,8 +223,12 @@ def draw_endcard(im, t):
     f4 = font(I_MED, 14)
     s4 = CFG.get('source_note', CFG.get('source_line', ""))
     draw_ls(d, (W / 2 - tw(d, s4, f4, 2.8) / 2, 620), s4, f4, (112, 128, 150), 2.8, alpha=int(a * 0.95))
-    s5 = CFG.get('credit', "EVERY FRAME GENERATED IN CODE")
-    draw_ls(d, (W / 2 - tw(d, s5, f4, 2.8) / 2, 648), s5, f4, (92, 106, 126), 2.8, alpha=int(a * 0.85))
+    brand = CFG.get('brand', "DATA ZED")
+    fb = font(I_BOLD, 40)
+    bw=tw(d,brand,fb,5); markw=62; gap=22
+    left=W/2-(bw+gap+markw)/2
+    draw_ls(d,(left,678),brand,fb,(238,244,255),5,alpha=int(a*0.98))
+    draw_youtube_mark(d,left+bw+gap+markw/2,703,markw,int(a*0.98))
 
 
 def bloom(arr, strength=0.85, thresh=0.30):
@@ -206,11 +267,14 @@ def render(t, fi=0):
     E.draw_ground_fx(im, em, cam, u, order)
 
     if t < T_INTRO:
+        # A single rounded hero-column rises in the opening; the montage hints at
+        # the range without prematurely revealing the count.
         for vz, i in reversed(order):
-            rv = reveal_of(t, i)
-            if rv <= 0.002:
+            if i != 0:
                 continue
-            E.draw_one_bar(im, em, cam, i, HEIGHTS[i] * rv, u, vz)
+            rv = smoothstep((t - 1.1) / 5.8)
+            if rv > 0.002:
+                E.draw_one_bar(im, em, cam, i, HEIGHTS[i] * rv, u, vz)
     else:
         E.draw_bars(im, cam, u, em, order)
 
@@ -231,7 +295,7 @@ def render(t, fi=0):
         if a > 0:
             Hd.draw_topbar(out, PEOPLE[0], 1, alpha=a, total=N)
     elif t < T_COUNT_END:
-        idx = int(clamp(int(round(u)) + 1, 1, N))
+        idx = int(clamp(int(u) + 1, 1, N))
         p = PEOPLE[idx - 1]
         appear = clamp((t - T_INTRO) / 0.7, 0, 1)
         Hd.draw_topbar(out, p, idx, alpha=int(255 * appear), total=N)

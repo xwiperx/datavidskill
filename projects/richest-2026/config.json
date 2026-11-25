@@ -1,8 +1,8 @@
 {
-  "brand": "FORBES  WORLD'S  BILLIONAIRES  2026",
+  "brand": "DATA ZED",
   "title_top": "THE  WORLD'S",
   "title_big": "RICHEST",
-  "title_sub": "ONE HUNDRED PEOPLE  ·  ONE NUMBER EACH",
+  "title_sub": "",
   "lower_kicker": "RANKED #1 TO #100",
   "lower_mid": "BY ESTIMATED NET WORTH",
   "source_line": "FORBES 2026  ·  SNAPSHOT MARCH 2026",
@@ -13,19 +13,70 @@
   "value_decimals": 1,
   "long_suffix": " BILLION",
   "finale_kicker": "WORLD  #1",
-  "finale_lines": ["THE RICHEST", "PERSON", "ON EARTH"],
+  "finale_lines": [
+    "THE RICHEST",
+    "PERSON",
+    "ON EARTH"
+  ],
   "finale_stats": null,
   "end_title": "ONE HUNDRED BILLIONAIRES",
   "end_total": null,
   "end_caption": "COMBINED ESTIMATED NET WORTH",
   "source_note": "DATA  FORBES WORLD'S BILLIONAIRES 2026  ·  SNAPSHOT MARCH 2026",
-  "credit": "EVERY FRAME GENERATED IN CODE",
-  "gamma": 0.72,
+  "gamma": 1.12,
   "seconds_per_item": 1.46,
   "duration": 180,
-  "colors": [[40, 84, 240], [32, 196, 232], [150, 78, 240], [238, 62, 96], [255, 186, 64]],
-  "color_positions": [0.0, 0.22, 0.4, 0.58, 0.84],
+  "colors": [
+    [
+      36,
+      112,
+      214
+    ],
+    [
+      36,
+      190,
+      206
+    ],
+    [
+      75,
+      188,
+      166
+    ],
+    [
+      152,
+      109,
+      224
+    ],
+    [
+      255,
+      186,
+      86
+    ]
+  ],
+  "color_positions": [
+    0.0,
+    0.22,
+    0.45,
+    0.7,
+    0.92
+  ],
   "output_name": "richest_100.mp4",
   "crf": 18,
-  "preset": "veryfast"
+  "preset": "veryfast",
+  "height_min": 2.8,
+  "height_range": 19.0,
+  "height_rank_mix": 0.42,
+  "growth_fraction": 0.46,
+  "camera_front": true,
+  "camera_distance": 46.0,
+  "camera_target_y": 9.0,
+  "camera_fov": 38.0,
+  "bevel_radius": 0.46,
+  "material": "glass",
+  "visual_mode": "person",
+  "image_directory": "assets/entities",
+  "geometry": "beveled_box",
+  "image_shape": "square",
+  "camera_lead_steps": 3.5,
+  "image_placement": "near_top"
 }
