@@ -1,6 +1,6 @@
 # datavidskill
 
-A small engine that turns a ranked dataset into a **3D tower data film**: each tower grows from the floor when its item is revealed, with a front-facing lateral camera, softly chamfered cuboids or topic-selected cylinders, vivid opaque solid materials by default, and a locally cached licensed image on its front. Glass is optional; graphics are rendered locally, while licensed subject images are sourced separately and attributed.
+A small engine that turns a ranked dataset into a **3D tower data film**: each tower grows from the floor when its item is revealed, with a front-facing lateral camera, softly chamfered cuboids or topic-selected cylinders, vivid opaque solid materials by default, with a locally cached licensed image inset safely on its front face and a fixed-size enlarged portrait card in reserved screen space. Glass is optional; graphics are rendered locally, while licensed subject images are sourced separately and attributed.
 
 The reference film in `projects/richest-2026` is a 3:00 documentary on the Forbes 2026 billionaires, from #1 (Dilip Shanghvi, $25.6B) to #100 (Elon Musk, $839B).
 
@@ -31,7 +31,7 @@ Requirements: Python 3.10+, Pillow, NumPy, ffmpeg with libx264. Fonts are bundle
 | Section | Timing | What happens |
 |---|---|---|
 | Intro | 0–12 s | animated numerical reticle, portrait teaser, title lockup, and camera push-in |
-| Countdown | 12 s → `duration−22 s` | each softened cuboid rises from the floor on its turn; the straight-on camera tracks laterally across several columns with HUD, a square portrait near the top of each front face, and a lower third |
+| Countdown | 12 s → `duration−22 s` | each softened cuboid rises from the floor on its turn; the straight-on camera tracks laterally across several columns with HUD, an inset portrait and oversized rank numeral on each front face, a fixed large portrait card, and a lower third |
 | Finale | last 22 s − 12 s | camera pulls back on the #1 tower, right-hand title block with the value and two stats |
 | End card | last 8.6 s | the whole list as a colour ribbon, the total, Data Zed channel branding |
 
@@ -39,7 +39,7 @@ Height blends a value curve and a rank progression so even near-ties grow visibl
 
 ## Images and appearance
 
-`scripts/datavid/fetch_images.py` checks Wikipedia and Wikimedia Commons, accepts public-domain, CC0, CC BY, and CC BY-SA assets, downloads images into the project, and records artist/license/source links in `image_sources.json`. Choose `visual_mode` (`person`, `country`/`flag`, `vehicle`, `building`, `company`, or `auto`) in `config.json`, or override a row with `visual_type`, `image_query`, and (for flags) `country`. Country entries use flags; person entries use exact-person portraits. Review matches and retain the attribution manifest when redistributing. If no exact, licensed image is found, the renderer leaves that panel empty rather than showing an unrelated result.
+`scripts/datavid/fetch_images.py` checks Wikipedia and Wikimedia Commons, accepts public-domain, CC0, CC BY, and CC BY-SA assets, downloads images into the project, and records artist/license/source links in `image_sources.json`. Choose `visual_mode` (`person`, `country`/`flag`, `vehicle`, `building`, `company`, or `auto`) in `config.json`, or override a row with `visual_type`, `image_query`, and (for flags) `country`. Country entries use flags; person entries use exact-person portraits. Review matches and retain the attribution manifest when redistributing. If no exact, licensed image is found, the renderer leaves the portrait window empty rather than showing an unrelated result.
 
 Choose `geometry` (`beveled_box` or `cylinder`), `material` (`solid` by default; `metal` or translucent `glass` optional), `bevel_radius`, `camera_front`, `camera_lead_steps`, `image_shape` (`square` or `circle`), `image_placement`, and `brand`; choose any RGB color ramp in `colors` / `color_positions`. Before approval, inspect representative stills for text collisions, clipping, transparency, and rendering artifacts. The channel name appears prominently beneath the intro title and beside a YouTube play mark when requested; the optional intro subtitle defaults to blank.
 

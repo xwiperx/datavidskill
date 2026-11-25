@@ -16,6 +16,14 @@ Check that title, channel branding, HUD, lower thirds, value scale, portrait lab
 - **Scale unit label.** The unit (`$B`, `m`) is drawn above the right end of the scale, not next to the last tick, or it collides with the final tick label.
 - **End card fade.** `render_end` fades out over the last 1.6 s; without it the video cuts hard to black.
 
+## New portrait and countdown checks
+
+- Confirm the enlarged portrait card has identical screen-space bounds for every item and does not collide with the top-right rank, lower-third, scale, or floating nameplate. Suppress the nameplate when it intersects the reserved portrait rectangle.
+- On-column portraits must remain entirely within the flat front-face safe area, inset from chamfers, seams, and rank numerals. Omit the small portrait on bars that are too short; never stretch it outside the face.
+- Rank numerals should occupy roughly half the visible front-face height in their own lower zone. Check short early bars and the #100 tower.
+- Review ten-rank transition cues at #10, #20, …, #90, then inspect each independent reveal/hold from #91 through #100.
+- Use opaque/near-opaque info cards so distant rank numerals cannot ghost through the lower third and appear to overlap copy.
+
 ## Frame-level checks
 
 - `ffprobe` frame count equals `round(30 × duration)`.

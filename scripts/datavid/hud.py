@@ -104,7 +104,9 @@ def draw_card(im, p, alpha=255, appear=1.0):
     a = int(alpha * appear)
     lay = Image.new('RGBA', (820, 268), (0, 0, 0, 0))
     dl = ImageDraw.Draw(lay)
-    dl.rectangle([0, 0, 820, 268], fill=(5, 8, 14, int(a * 0.88)))
+    # Near-opaque fill prevents tower numerals and face details from ghosting
+    # through the lower third and reading as accidental text overlap.
+    dl.rectangle([0, 0, 820, 268], fill=(5, 8, 14, int(a * 0.98)))
     dl.rectangle([0, 0, 820, 2], fill=col + (a,))
     dl.rectangle([0, 0, 4, 268], fill=col + (int(a * 0.55),))
     im.paste(lay, (0, y0 - 34), lay)
@@ -170,6 +172,13 @@ def draw_plate(im, cam, p, idx, alpha=255, scale=1.0):
     y0 = sy - ph
     # avoid colliding with the lower-third card
     if x0 < 930 and y0 + ph > 706:
+        return
+    # The enlarged portrait occupies reserved negative space on the right.
+    # Suppress a floating nameplate rather than allowing either to cover text.
+    panel = E.cfg('feature_portrait_box', [1480, 270, 344, 410])
+    px, py, pwidth, pheight = panel
+    if (x0 < px + pwidth and x0 + pw > px and
+            y0 < py + pheight and y0 + ph > py):
         return
     lay = Image.new('RGBA', (int(pw) + 2, int(ph) + 2), (0, 0, 0, 0))
     dl = ImageDraw.Draw(lay)

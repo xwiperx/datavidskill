@@ -17,11 +17,11 @@ def u_of_t(t):
         return 0.0
     tt = (t - T_INTRO) / PER_BAR
     if tt >= N:
-        return float(N - 1)
+        return float(N)
     i = math.floor(tt)
     s = tt - i
     s2 = smoothstep((s - 0.10) / 0.78)
-    return min(float(N - 1), i + s2)
+    return min(float(N), i + s2)
 
 
 def reveal_of(t, i):
@@ -101,6 +101,40 @@ def draw_boundary_sweep(im, t, start, end, color=(105,210,255)):
     d.line([(x-13,0),(x+172,H)],fill=(245,252,255,int(aa*0.38)),width=1)
     flare_y = H*(0.18+0.64*p)
     d.ellipse([x-8,flare_y-8,x+8,flare_y+8],fill=(255,255,255,int(aa*0.72)))
+
+
+def draw_countdown_motion(im, t, u, idx, color):
+    """Repeatable per-rank motion language: arrival pulse and progress spark."""
+    d = ImageDraw.Draw(im,'RGBA')
+    phase = clamp(u-math.floor(u),0,1)
+    start = T_INTRO + max(0,idx-1)*PER_BAR
+    age = max(0,t-start)
+    # Brief, edge-safe gold tick under the rank HUD, leaving all glyphs unobscured.
+    kick = math.exp(-((age-0.12)/0.22)**2)
+    if kick > 0.02:
+        aa = int(190*kick)
+        x0,x1 = W-96-224,W-96-178
+        d.line([(x0,174),(x0+(x1-x0)*ease_out(min(1,age/0.28)),174)],
+               fill=tuple(color)+(aa,),width=3)
+        d.ellipse([x0-3,170,x0+3,176],fill=(255,245,210,aa))
+    # A bright pulse follows the existing lower progress marker, not the text panels.
+    frac = (idx-1)/max(1,N-1)
+    x = 96+(W-192)*frac
+    pulse = math.sin(math.pi*phase) if 0 < phase < 1 else 0.0
+    if pulse > 0.01:
+        aa = int(135*pulse)
+        y = H-26
+        d.line([(max(96,x-72),y),(x,y)],fill=tuple(color)+(int(aa*0.42),),width=4)
+        r = 5+5*pulse
+        d.ellipse([x-r,y-r,x+r,y+r],outline=(222,244,255,aa),width=2)
+    # Ten-rank chapter gates punctuate the grouped climb; the last ten still
+    # receive one distinct individual reveal each, with the same per-rank pulse.
+    if idx in (10,20,30,40,50,60,70,80,90,100) and age < 0.70:
+        cp = clamp(age/0.45,0,1)
+        xx = 96+(W-192)*(frac)
+        spread = 75*ease_out(cp)
+        aa = int(100*(1-cp*0.25))
+        d.line([(xx-spread, H-43),(xx+spread,H-43)],fill=tuple(color)+(aa,),width=2)
 def draw_title(im, t):
     """Cinematic opening: kinetic numeric motif, editorial title, portrait teaser."""
     d = ImageDraw.Draw(im, 'RGBA')
@@ -204,13 +238,44 @@ def draw_title(im, t):
         draw_ls(d,(122,858),CFG.get('lower_kicker',f'RANKED #1 TO #{N}'),font(I_SEMI,17),(255,194,88),3.6,alpha=a)
         draw_ls(d,(122,890),CFG.get('lower_mid','BY ESTIMATED NET WORTH'),font(I_MED,16),(205,218,236),3.0,alpha=a)
         draw_ls(d,(122,922),CFG.get('source_line',''),font(I_REG,14),(126,142,164),2.4,alpha=int(a*0.9))
+def draw_feature_portrait(im, index, alpha=255):
+    """Fixed-size portrait card in the reserved right-side negative space."""
+    portrait=E.item_image(index)
+    x0,y0,w,h=map(int,CFG.get('feature_portrait_box',[1480,270,344,410]))
+    a=int(clamp(alpha,0,255))
+    d=ImageDraw.Draw(im,'RGBA')
+    col=tier_color(PEOPLE[index]['worth'])
+    d.rounded_rectangle([x0,y0,x0+w,y0+h],radius=18,
+                        fill=(5,9,17,int(a*0.92)),outline=(col[0],col[1],col[2],int(a*0.82)),width=2)
+    d.rectangle([x0+20,y0+18,x0+66,y0+22],fill=(255,194,88,a))
+    label='FEATURED PORTRAIT'
+    draw_ls(d,(x0+20,y0+34),label,font(I_SEMI,14),(164,181,205),2.2,alpha=a)
+    ix,iy,iw= x0+20,y0+68,304
+    if portrait is not None:
+        from PIL import ImageOps
+        pane=ImageOps.fit(portrait,(iw,iw),method=Image.Resampling.LANCZOS,centering=(0.5,0.38)).convert('RGBA')
+        mask=Image.new('L',pane.size,0)
+        ImageDraw.Draw(mask).rounded_rectangle((1,1,iw-2,iw-2),radius=15,fill=a)
+        pane.putalpha(mask)
+        im.paste(pane,(ix,iy),pane)
+        d=ImageDraw.Draw(im,'RGBA')
+        d.rounded_rectangle([ix,iy,ix+iw,iy+iw],radius=15,outline=(226,238,255,int(a*0.70)),width=2)
+    else:
+        # Preserve the exact same portrait window without inventing a substitute.
+        d.rounded_rectangle([ix,iy,ix+iw,iy+iw],radius=15,
+                            fill=(10,16,27,int(a*0.88)),outline=(96,116,145,int(a*0.48)),width=1)
+        d.line([(ix+28,iy+iw-28),(ix+iw-28,iy+28)],fill=(96,116,145,int(a*0.38)),width=2)
+        draw_ls(d,(ix+28,iy+iw+18),'NO VERIFIED IMAGE',font(I_SEMI,12),(128,145,168),1.8,alpha=a)
+    # Item identity is already printed in the lower-third; keep this card image-led.
+
+
 def draw_finale(im, t, u):
     d = ImageDraw.Draw(im, 'RGBA')
     p = clamp((t - T_COUNT_END - 0.9) / 1.4, 0, 1)
     if p <= 0:
         return
     a = int(255 * p)
-    X = 1090
+    X = 1440
     top = PEOPLE[-1]
     d.rectangle([X, 236, X + 44, 240], fill=(255, 194, 88, a))
     draw_ls(d, (X, 260), CFG.get('finale_kicker', "WORLD  #1"), font(I_SEMI, 17), (255, 194, 88), 4.4,
@@ -386,6 +451,7 @@ def render(t, fi=0):
         Hd.draw_scale(out, p['worth'], alpha=int(235 * appear))
         Hd.draw_progress(out, (idx - 1) / max(1, N - 1), tier_color(p['worth']), alpha=int(220 * appear))
         Hd.draw_plate(out, cam, p, idx, alpha=int(255 * appear), scale=1.0)
+        draw_feature_portrait(out,idx-1,alpha=int(255*appear))
     else:
         p = PEOPLE[-1]
         Hd.draw_topbar(out, p, N, alpha=255, total=N)
@@ -395,6 +461,9 @@ def render(t, fi=0):
 
     if t < T_INTRO:
         draw_intro_motion(out, t)
+    if t >= T_INTRO and t < T_COUNT_END:
+        idx = int(clamp(int(u)+1,1,N))
+        draw_countdown_motion(out,t,u,idx,tier_color(PEOPLE[idx-1]['worth']))
     draw_title(out, t)
     if t >= T_COUNT_END:
         draw_finale(out, t, u)

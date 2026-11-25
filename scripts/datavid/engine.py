@@ -641,14 +641,40 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
         d.polygon([tuple(q[:2]) for q in top],fill=tc+(top_alpha,),outline=(240,248,255,int(166*(1-fog))))
         add_glow(emissive,float(top[:,0].mean()),float(top[:,1].mean()),
                  float(np.ptp(top[:,0]))*0.7+12,col,int(74*(1-fog)),0.28)
+    # A single light sweep travels over the active column during its rank reveal.
+    # Keep it at mid-height so it never obscures the portrait or rank plate.
+    active_i = int(clamp(math.floor(u), 0, N-1))
+    if i == active_i and h > 0.5:
+        phase = clamp(u - math.floor(u), 0.0, 1.0)
+        front_y = max(0.18, h * 0.52)
+        face_half = max(0.2, BW/2-bevel*0.70)
+        row3 = np.asarray([bar_base(i)+np.array([-face_half,front_y,BD/2+0.012]),
+                           bar_base(i)+np.array([ face_half,front_y,BD/2+0.012])])
+        row = cam.project(row3)
+        if np.min(row[:,2]) > 0.8:
+            x = lerp(row[0,0],row[1,0],ease_out(phase))
+            y = lerp(row[0,1],row[1,1],ease_out(phase))
+            env = math.sin(math.pi*phase)**0.45 if 0 < phase < 1 else 0.0
+            aa = int(220*env*(1-fog))
+            if aa > 2:
+                d = ImageDraw.Draw(im,'RGBA')
+                d.line([tuple(row[0,:2]),tuple(row[1,:2])],fill=col+(int(42*env*(1-fog)),),width=2)
+                d.line([(x-20,y),(x+20,y)],fill=(222,246,255,aa),width=3)
+                d.ellipse([x-4,y-4,x+4,y+4],fill=(255,255,255,aa))
+        # Brighten the active cap rim for a clean, single-focus reveal beat.
+        if np.min(top[:,2]) > 0.8:
+            pulse = int(140*(0.25+0.75*math.sin(math.pi*phase))*(1-fog))
+            d = ImageDraw.Draw(im,'RGBA')
+            d.line([tuple(q[:2]) for q in top]+[tuple(top[0,:2])],
+                   fill=(224,246,255,pulse),width=2)
     portrait=item_image(i)
-    if portrait is not None and h>=1.95:
-        side=min(1.56,BW-2*bevel-0.24,h-0.24)
-        if str(cfg('image_placement','near_top')).lower()=='near_top':
-            y1=h-0.34; y0=y1-side
-        else:
-            y0=(h-side)/2; y1=y0+side
-        z=BD/2+0.012
+    # Keep the square wholly inside the flat face: inset from both chamfered
+    # edges, the cap seam, and the rank-number zone below it.
+    safe_width=max(0.0, BW-2*(bevel+0.24))
+    side=min(float(cfg('bar_image_size',1.28)),safe_width)
+    if portrait is not None and side>=0.60 and h>=side+1.90:
+        y1=h-0.42; y0=y1-side
+        z=BD/2+0.010
         x0,x1=-side/2,side/2
         quad3=[bar_base(i)+np.array([x0,y1,z]),bar_base(i)+np.array([x1,y1,z]),
                bar_base(i)+np.array([x1,y0,z]),bar_base(i)+np.array([x0,y0,z])]
@@ -667,12 +693,18 @@ def draw_one_bar(im, emissive, cam, i, h, u, vz, show_rank=True):
             d.line([tuple(q[:2]) for q in pq]+[tuple(pq[0,:2])],
                    fill=mix(col,(255,255,255),0.68)+(int(225*(1-fog)),),width=2)
     if show_rank and vz<80 and h>1.45:
-        side=0.92; y0=min(0.88,h*0.26); y1=y0+0.47; z=BD/2+0.016
-        quad=cam.project(np.asarray([bar_base(i)+np.array([-side/2,y1,z]),bar_base(i)+np.array([side/2,y1,z]),
-             bar_base(i)+np.array([side/2,y0,z]),bar_base(i)+np.array([-side/2,y0,z])]))
-        if np.min(quad[:,2])>0.8:
-            text_on_quad(im,str(p['pos']).zfill(2),BEBAS,quad[:,:2],(245,248,255,235),
-                         int(218*(1-fog)*dim),0.60,0.58)
+        # Oversized rank occupies roughly half the front-face height. It is
+        # placed below the portrait zone and inset from the bevels.
+        face_w=max(0.55,BW-2*(bevel+0.20))
+        box_h=min(1.38,max(0.70,h*0.48))
+        y0=0.20
+        y1=min(h-0.16,y0+box_h)
+        if y1-y0>=0.55:
+            quad=cam.project(np.asarray([bar_base(i)+np.array([-face_w/2,y1,BD/2+0.014]),bar_base(i)+np.array([face_w/2,y1,BD/2+0.014]),
+                 bar_base(i)+np.array([face_w/2,y0,BD/2+0.014]),bar_base(i)+np.array([-face_w/2,y0,BD/2+0.014])]))
+            if np.min(quad[:,2])>0.8:
+                text_on_quad(im,str(p['pos']).zfill(2),BEBAS,quad[:,:2],(250,252,255,248),
+                             int(242*(1-fog)*dim),0.88,0.84)
 
 def draw_bars(im, cam, u, emissive, order, show_rank=True):
     """Reveal only the current item; animate its height up from the floor."""

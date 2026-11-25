@@ -5,7 +5,7 @@
   "title_sub": "",
   "lower_kicker": "RANKED #1 TO #100",
   "lower_mid": "BY ESTIMATED NET WORTH",
-  "source_line": "SOURCE  ·  SNAPSHOT DATE",
+  "source_line": "SOURCE  \u00b7  SNAPSHOT DATE",
   "scale_label": "NET WORTH SCALE",
   "scale_max": 800,
   "value_prefix": "$",
@@ -22,7 +22,7 @@
   "end_title": "ONE HUNDRED BILLIONAIRES",
   "end_total": null,
   "end_caption": "COMBINED ESTIMATED NET WORTH",
-  "source_note": "DATA SOURCE  ·  SNAPSHOT DATE",
+  "source_note": "DATA SOURCE  \u00b7  SNAPSHOT DATE",
   "gamma": 1.12,
   "height_min": 2.8,
   "height_range": 19.0,
@@ -78,5 +78,15 @@
   "geometry": "beveled_box",
   "image_shape": "square",
   "camera_lead_steps": 3.5,
-  "image_placement": "near_top"
+  "image_placement": "near_top",
+  "growth_group_size": 10,
+  "final_individual_count": 10,
+  "bar_image_size": 1.28,
+  "large_portrait_panel": true,
+  "feature_portrait_box": [
+    1480,
+    270,
+    344,
+    410
+  ]
 }

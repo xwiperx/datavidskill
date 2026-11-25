@@ -60,7 +60,7 @@
     0.7,
     0.92
   ],
-  "output_name": "richest_100.mp4",
+  "output_name": "richest_100_updated.mp4",
   "crf": 18,
   "preset": "veryfast",
   "height_min": 2.8,
@@ -78,5 +78,15 @@
   "geometry": "beveled_box",
   "image_shape": "square",
   "camera_lead_steps": 3.5,
-  "image_placement": "near_top"
+  "image_placement": "near_top",
+  "growth_group_size": 10,
+  "final_individual_count": 10,
+  "bar_image_size": 1.28,
+  "large_portrait_panel": true,
+  "feature_portrait_box": [
+    1480,
+    270,
+    344,
+    410
+  ]
 }
