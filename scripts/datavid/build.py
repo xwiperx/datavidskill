@@ -201,7 +201,7 @@ def _ensure_score():
     try:
         subprocess.run([
             'ffmpeg', '-y', '-hide_banner', '-nostdin', '-loglevel', 'error',
-            '-i', raw, '-af', 'loudnorm=I=-14:TP=-2:LRA=11',
+            '-i', raw, '-af', 'loudnorm=I=-14:TP=-3.2:LRA=11',
             '-ar', '44100', '-ac', '2', '-t', f'{E.DUR:.6f}',
             '-c:a', 'pcm_s16le', tmp], check=True)
         if not valid_wav(tmp, E.DUR):

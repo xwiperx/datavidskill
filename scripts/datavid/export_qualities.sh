@@ -9,11 +9,15 @@ Usage:
 Resolutions: 144p 240p 360p 480p 720p 1080p
 Existing deliverables are preserved; collisions receive _v2, _v3, ... suffixes.
 Aspect ratio is preserved with padding, not cropping.
+Optional: set DATAVID_AUDIO_SOURCE=/path/to/normalized.wav to encode audio
+directly from PCM and avoid transcoding the master's AAC track.
 EOF
 }
 [[ $# -ge 3 ]] || { usage >&2; exit 2; }
 input=$1; outdir=$2; shift 2
 [[ -f "$input" ]] || { echo "Input file not found: $input" >&2; exit 1; }
+audio_source=${DATAVID_AUDIO_SOURCE:-$input}
+[[ -f "$audio_source" ]] || { echo "Audio source file not found: $audio_source" >&2; exit 1; }
 command -v ffmpeg >/dev/null || { echo 'ffmpeg is required' >&2; exit 1; }
 command -v ffprobe >/dev/null || { echo 'ffprobe is required' >&2; exit 1; }
 mkdir -p "$outdir"
@@ -49,14 +53,21 @@ for quality in "$@"; do
   temp="$outdir/.${stem}_${quality}.$$.tmp.mp4"
   [[ ! -e "$temp" ]] || { echo "Temporary file already exists: $temp" >&2; exit 1; }
   echo "Encoding $quality (${width}x${height}) -> $output"
-  if [[ "$quality" == 1080p && "$source_width" == 1920 && "$source_height" == 1080 ]]; then
+  if [[ "$quality" == 1080p && "$source_width" == 1920 && "$source_height" == 1080 && "$audio_source" == "$input" ]]; then
     cp --reflink=auto -- "$input" "$temp"
   else
     vf="scale=${width}:${height}:force_original_aspect_ratio=decrease:force_divisible_by=2:flags=lanczos,pad=${width}:${height}:(ow-iw)/2:(oh-ih)/2:color=black,setsar=1"
-    ffmpeg -hide_banner -nostdin -loglevel error -i "$input" \
-      -map 0:v:0 -map '0:a?' -vf "$vf" \
+    inputs=(-i "$input")
+    if [[ "$audio_source" == "$input" ]]; then
+      audio_map='0:a?'
+    else
+      inputs+=(-i "$audio_source")
+      audio_map='1:a:0'
+    fi
+    ffmpeg -hide_banner -nostdin -loglevel error "${inputs[@]}" \
+      -map 0:v:0 -map "$audio_map" -vf "$vf" \
       -c:v libx264 -preset medium -crf 23 -pix_fmt yuv420p \
-      -c:a aac -b:a 128k -ar 44100 -movflags +faststart "$temp"
+      -c:a aac -b:a 128k -ar 44100 -shortest -movflags +faststart "$temp"
   fi
   mapfile -t metadata < <(ffprobe -v error -select_streams v:0 \
     -show_entries stream=width,height,r_frame_rate \
