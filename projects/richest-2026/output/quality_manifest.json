@@ -1,0 +1,189 @@
+{
+  "project": "richest-2026",
+  "master": "richest_100_updated.mp4",
+  "selected_resolutions": [
+    "144p",
+    "240p",
+    "360p",
+    "480p",
+    "720p",
+    "1080p"
+  ],
+  "encoding": "H.264 video, AAC stereo audio; 30 fps; CRF 23 for downscaled versions; 1080p is a bit-identical copy of the master.",
+  "outputs": [
+    {
+      "label": "144p",
+      "file": "richest_100_updated_144p.mp4",
+      "sha256": "b08885dc86841cca32a21abadd18326fc3d93d84f188c150b94cb8e5fa09c8c8",
+      "size_bytes": 3907453,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 256,
+            "height": 144,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000998",
+          "size": "3907453"
+        }
+      }
+    },
+    {
+      "label": "240p",
+      "file": "richest_100_updated_240p.mp4",
+      "sha256": "40cfaf929ba4389ba1bd6b2e962c00342b8f5b7cc07437ee4075d3c796a7a58f",
+      "size_bytes": 4674876,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 426,
+            "height": 240,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000998",
+          "size": "4674876"
+        }
+      }
+    },
+    {
+      "label": "360p",
+      "file": "richest_100_updated_360p.mp4",
+      "sha256": "17e3c77af81527457b6f1d30cfecaaae1862959169a7e89ae21f489e67f24c62",
+      "size_bytes": 5977871,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 640,
+            "height": 360,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000998",
+          "size": "5977871"
+        }
+      }
+    },
+    {
+      "label": "480p",
+      "file": "richest_100_updated_480p.mp4",
+      "sha256": "6834ae2911932ef3c65d69d1ae052197c174fb5a49195523a696fb658d4e1410",
+      "size_bytes": 7833155,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 854,
+            "height": 480,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000998",
+          "size": "7833155"
+        }
+      }
+    },
+    {
+      "label": "720p",
+      "file": "richest_100_updated_720p.mp4",
+      "sha256": "5dab31520e967d599cdcf043beec2e23621d63ee104b2ad5de137f32cbce409e",
+      "size_bytes": 12991895,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000998",
+          "size": "12991895"
+        }
+      }
+    },
+    {
+      "label": "1080p",
+      "file": "richest_100_updated_1080p.mp4",
+      "sha256": "a64e9f062ec1fae0aa3a5d0f424aa482a92283385cdd643b39fd0f2ff2172030",
+      "size_bytes": 398754343,
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "30/1"
+          },
+          {
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "44100",
+            "channels": 2,
+            "r_frame_rate": "0/0"
+          }
+        ],
+        "format": {
+          "duration": "180.000000",
+          "size": "398754343"
+        }
+      }
+    }
+  ]
+}

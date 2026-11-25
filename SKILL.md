@@ -1,11 +1,11 @@
 ---
 name: datavid
-description: Produce ranked data documentaries as procedural 3D tower videos. Use for countdowns about people, countries, buildings, companies, vehicles, products, or other measurable entities, including when the user gives only a topic. The skill researches a dated dataset, finds suitable license-aware entity images, animates towers growing in rank order, and renders one MP4.
+description: Produce ranked data documentaries as procedural 3D tower videos. Use for countdowns about people, countries, buildings, companies, vehicles, products, or other measurable entities, including when the user gives only a topic. The skill researches a dated dataset, finds suitable license-aware entity images, animates towers growing in rank order, and exports user-selected MP4 resolutions.
 ---
 
 # datavid — ranked 3D tower documentaries
 
-Render a 3:00 1080p30 film by default. Each ranked entity receives a 3D column with topic-appropriate geometry: a softly chamfered cuboid by default for ranked-person videos, or a selectable cylinder/other shape when the topic or user calls for it. Keep user-selected width; soften corners rather than making them sharp. Default to vivid, opaque solid columns; use glass only when explicitly requested. For countdowns, arrange several columns side-by-side across the frame and track laterally with a straight-on, front-facing camera. Show its name, value, and rank on the front face. Keep any locally cached subject image fully inside the flat face with a clear inset from chamfers, outlines, cap seams, and text; omit it when the bar is too short rather than clipping it. Make the rank numeral large (roughly half the visible face height) in a separate lower zone. When a verified image exists, also show it in a larger, fixed-size square/circular portrait card in reserved negative space; keep identical dimensions and framing for every subject, and show an empty labeled frame rather than an unrelated image when no verified asset exists. Render graphics and audio in code; use downloaded entity images only when they add subject identity. Never depend on remote assets at render time.
+Render a 3:00 1080p30 master by default. Before each full render, always ask which delivery resolution(s) the user wants; offer 144p, 240p, 360p, 480p, 720p, and 1080p, allowing one or multiple choices. Do not assume they want all sizes or silently select a quality. Render the master once at 1080p, then encode the requested deliverables from it. Each ranked entity receives a 3D column with topic-appropriate geometry: a softly chamfered cuboid by default for ranked-person videos, or a selectable cylinder/other shape when the topic or user calls for it. Keep user-selected width; soften corners rather than making them sharp. Default to vivid, opaque solid columns; use glass only when explicitly requested. For countdowns, arrange several columns side-by-side across the frame and track laterally with a straight-on, front-facing camera. Show its name, value, and rank on the front face. Keep any locally cached subject image fully inside the flat face with a clear inset from chamfers, outlines, cap seams, and text; omit it when the bar is too short rather than clipping it. Make the rank numeral large (roughly half the visible face height) in a separate lower zone. When a verified image exists, also show it in a larger, fixed-size square/circular portrait card in reserved negative space; keep identical dimensions and framing for every subject, and show an empty labeled frame rather than an unrelated image when no verified asset exists. Render graphics and audio in code; use downloaded entity images only when they add subject identity. Never depend on remote assets at render time.
 
 ## Inputs and ranking
 
@@ -31,7 +31,22 @@ Each `data.json` item may contain:
 4. Run `python3 scripts/datavid/fetch_images.py --project /path/to/project`. It checks Wikipedia page images and Wikimedia Commons, accepts public-domain, CC0, CC BY, or CC BY-SA images, downloads them locally, and writes `image_sources.json` with artist, license, and source page. Review a contact sheet and inspect doubtful matches; never substitute a similarly named person, generic image, or other unrelated result. If no exact, usable image is found, leave the panel blank and document the gap. The renderer has no network dependency. Respect each license and preserve the attribution manifest when redistributing a project. See `references/image-sourcing.md` for resolver behavior and visual-type guidance.
 5. Render stills around the intro, first item, middle, final item, finale, and end card: `python3 scripts/render.py --project /path --stills 2 6 10 14 90 150 168 176` (adjust to duration). Also sample growth, reading-hold, and rank-transition phases for early, middle, and final items. Inspect every title lockup, lower third, scale, portrait, plate, finale, and end card for clipped glyphs, text-to-text collisions, unwanted transparency, and graphic artifacts; correct and regenerate the affected stills.
 6. Use ten-rank chapters for the main countdown: retain an individual readable reveal for each item, add a stronger grouped growth/transition cue at ranks 10, 20, …, 90, then give each of the final ten ranks its own distinct growth beat and reading hold. Make this cadence explicit in `storyboard.md`. Before the full video render, prepare the storyboard with a reading-hold frame for each ranked reveal and a compact motion contact sheet showing growth, holds, chapter gates, the final ten, and transitions. Share it for review and wait for explicit user approval before any full-length MP4 render. Do not treat approval of an older preview as approval for a changed storyboard.
-7. Verify duration, resolution, frame rate, codecs, audio, stills, image attribution manifest, and playback. Deliver the single MP4 and source project.
+7. Before starting the full render, ask which output resolutions are wanted: 144p (256×144), 240p (426×240), 360p (640×360), 480p (854×480), 720p (1280×720), and 1080p (1920×1080). Permit multiple selections. If the current request explicitly names the desired sizes, treat that as the answer; otherwise wait for the user's choice.
+8. Render one 1080p30 master, then create a separate MP4 for each selected resolution using `scripts/datavid/export_qualities.sh <master.mp4> <output-dir> <resolution...>`. Keep the source aspect ratio (letterbox/pad rather than crop when necessary), frame rate, duration, and audio. Use names `<master-stem>_<resolution>.mp4`; never overwrite the source master or an existing deliverable. Preserve the master even when 1080p is selected.
+9. Verify each output's dimensions, duration, frame rate, codecs, audio stream, and full decode. Add all requested MP4s to Git LFS and push them with the project when authorized. Deliver links to each requested quality and the source project.
+
+## Delivery resolutions
+
+| Label | Frame size |
+|---|---:|
+| 144p | 256×144 |
+| 240p | 426×240 |
+| 360p | 640×360 |
+| 480p | 854×480 |
+| 720p | 1280×720 |
+| 1080p | 1920×1080 |
+
+Always ask the user to choose one or more labels from this exact menu before the full render; do not infer a default selection from the master resolution. Encode each requested size as a distinct H.264/AAC MP4, retain 30 fps for a 30 fps master, and use a quality-based encode (CRF 23, yuv420p, AAC 128 kb/s) unless the user specifies a different delivery constraint. Put files in the project's `output/` directory, use Git LFS, and preserve prior versions. If the user explicitly requests every listed resolution, create all six without asking again.
 
 ## Project appearance controls
 
@@ -66,7 +81,7 @@ For motion review, render representative early, middle, and final countdown samp
 
 - Python 3.10+, Pillow, NumPy, and FFmpeg with libx264.
 - `scripts/render.py`: still and full-video renderer.
-- `scripts/datavid/`: 3D engine, scene, HUD, audio, build pipeline, and licensed image resolver.
+- `scripts/datavid/`: 3D engine, scene, HUD, audio, build pipeline, licensed image resolver, and `export_qualities.sh` for requested MP4 sizes.
 - `templates/`: starting `config.json` and `data.json`.
 - `references/`: data sourcing and QA guidance.
 
