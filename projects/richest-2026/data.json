@@ -1,0 +1,632 @@
+{
+ "items": [
+  {
+   "name": "Dilip Shanghvi",
+   "value": 25.6,
+   "category": "HEALTHCARE",
+   "meta": "PHARMACEUTICALS \u00b7 INDIA"
+  },
+  {
+   "name": "Suleiman Kerimov",
+   "value": 25.7,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "GOLD \u00b7 RUSSIA",
+   "family": true
+  },
+  {
+   "name": "Israel Englander",
+   "value": 25.8,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "HEDGE FUNDS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Rick Cohen",
+   "value": 26.3,
+   "category": "TECHNOLOGY",
+   "meta": "WAREHOUSE AUTOMATION \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Jay Y. Lee",
+   "value": 27.0,
+   "category": "TECHNOLOGY",
+   "meta": "SAMSUNG \u00b7 SOUTH KOREA"
+  },
+  {
+   "name": "Cyrus Poonawalla",
+   "value": 27.0,
+   "category": "HEALTHCARE",
+   "meta": "VACCINES \u00b7 INDIA"
+  },
+  {
+   "name": "Vicky Safra",
+   "value": 27.1,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "BANKING \u00b7 SWITZERLAND",
+   "family": true
+  },
+  {
+   "name": "Pham Nhat Vuong",
+   "value": 27.7,
+   "category": "DIVERSIFIED",
+   "meta": "DIVERSIFIED \u00b7 VIETNAM"
+  },
+  {
+   "name": "Daniel Gilbert",
+   "value": 27.9,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "ROCKET MORTGAGE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Lei Jun",
+   "value": 27.9,
+   "category": "TECHNOLOGY",
+   "meta": "SMARTPHONES, AUTOMOBILES \u00b7 CHINA"
+  },
+  {
+   "name": "Andreas von Bechtolsheim",
+   "value": 27.9,
+   "category": "TECHNOLOGY",
+   "meta": "GOOGLE \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Emmanuel Besnier",
+   "value": 28.3,
+   "category": "FOOD & BEVERAGE",
+   "meta": "CHEESE \u00b7 FRANCE"
+  },
+  {
+   "name": "Leonid Mikhelson",
+   "value": 28.3,
+   "category": "ENERGY",
+   "meta": "GAS, CHEMICALS \u00b7 RUSSIA",
+   "family": true
+  },
+  {
+   "name": "Peter Thiel",
+   "value": 28.4,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "FACEBOOK, INVESTMENTS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Aliko Dangote",
+   "value": 28.5,
+   "category": "MANUFACTURING",
+   "meta": "DANGOTE CEMENT \u00b7 NIGERIA"
+  },
+  {
+   "name": "Prajogo Pangestu",
+   "value": 28.6,
+   "category": "DIVERSIFIED",
+   "meta": "PETROCHEMICALS, ENERGY \u00b7 INDONESIA"
+  },
+  {
+   "name": "MacKenzie Scott",
+   "value": 28.6,
+   "category": "TECHNOLOGY",
+   "meta": "AMAZON \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Jack Ma",
+   "value": 29.1,
+   "category": "TECHNOLOGY",
+   "meta": "E-COMMERCE \u00b7 CHINA"
+  },
+  {
+   "name": "Vagit Alekperov",
+   "value": 29.5,
+   "category": "ENERGY",
+   "meta": "OIL \u00b7 RUSSIA"
+  },
+  {
+   "name": "Fran\u00e7ois Pinault",
+   "value": 29.5,
+   "category": "FASHION & RETAIL",
+   "meta": "LUXURY GOODS \u00b7 FRANCE",
+   "family": true
+  },
+  {
+   "name": "Susanne Klatten",
+   "value": 29.7,
+   "category": "AUTOMOTIVE",
+   "meta": "BMW, PHARMACEUTICALS \u00b7 GERMANY"
+  },
+  {
+   "name": "Vladimir Potanin",
+   "value": 29.7,
+   "category": "METALS & MINING",
+   "meta": "METALS \u00b7 RUSSIA"
+  },
+  {
+   "name": "Len Blavatnik",
+   "value": 29.9,
+   "category": "DIVERSIFIED",
+   "meta": "MUSIC, CHEMICALS \u00b7 UNITED KINGDOM"
+  },
+  {
+   "name": "Lyndal Stephens Greth",
+   "value": 30.0,
+   "category": "ENERGY",
+   "meta": "OIL & GAS \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Stefan Quandt",
+   "value": 30.1,
+   "category": "AUTOMOTIVE",
+   "meta": "BMW \u00b7 GERMANY"
+  },
+  {
+   "name": "Reinhold Wuerth",
+   "value": 30.1,
+   "category": "MANUFACTURING",
+   "meta": "FASTENERS \u00b7 GERMANY",
+   "family": true
+  },
+  {
+   "name": "Melinda French Gates",
+   "value": 30.3,
+   "category": "TECHNOLOGY",
+   "meta": "MICROSOFT \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Henry Samueli",
+   "value": 30.8,
+   "category": "TECHNOLOGY",
+   "meta": "SEMICONDUCTORS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Elaine Marshall",
+   "value": 30.9,
+   "category": "DIVERSIFIED",
+   "meta": "KOCH INC. \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Shiv Nadar",
+   "value": 30.9,
+   "category": "TECHNOLOGY",
+   "meta": "SOFTWARE SERVICES \u00b7 INDIA"
+  },
+  {
+   "name": "Lakshmi Mittal",
+   "value": 31.0,
+   "category": "METALS & MINING",
+   "meta": "STEEL \u00b7 SWITZERLAND"
+  },
+  {
+   "name": "Phil Knight",
+   "value": 31.1,
+   "category": "FASHION & RETAIL",
+   "meta": "NIKE \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Michal Strnad",
+   "value": 31.1,
+   "category": "MANUFACTURING",
+   "meta": "DEFENSE CONTRACTING \u00b7 CZECH REPUBLIC"
+  },
+  {
+   "name": "Robert Pera",
+   "value": 31.7,
+   "category": "TECHNOLOGY",
+   "meta": "WIRELESS NETWORKING \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Marilyn Simons",
+   "value": 32.5,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "HEDGE FUNDS \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "He Xiangjian",
+   "value": 33.2,
+   "category": "MANUFACTURING",
+   "meta": "HOME APPLIANCES \u00b7 CHINA",
+   "family": true
+  },
+  {
+   "name": "Abigail Johnson",
+   "value": 33.2,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "FIDELITY \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Zheng Shuliang",
+   "value": 33.2,
+   "category": "METALS & MINING",
+   "meta": "ALUMINUM PRODUCTS \u00b7 CHINA",
+   "family": true
+  },
+  {
+   "name": "Eyal Ofer",
+   "value": 33.6,
+   "category": "DIVERSIFIED",
+   "meta": "REAL ESTATE, SHIPPING \u00b7 MONACO"
+  },
+  {
+   "name": "Idan Ofer",
+   "value": 34.6,
+   "category": "DIVERSIFIED",
+   "meta": "SHIPPING \u00b7 UNITED KINGDOM"
+  },
+  {
+   "name": "Eric Schmidt",
+   "value": 35.5,
+   "category": "TECHNOLOGY",
+   "meta": "GOOGLE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Eduardo Saverin",
+   "value": 35.9,
+   "category": "TECHNOLOGY",
+   "meta": "FACEBOOK \u00b7 SINGAPORE"
+  },
+  {
+   "name": "Colin Huang",
+   "value": 36.6,
+   "category": "TECHNOLOGY",
+   "meta": "E-COMMERCE \u00b7 CHINA"
+  },
+  {
+   "name": "Alexey Mordashov",
+   "value": 37.0,
+   "category": "METALS & MINING",
+   "meta": "STEEL, INVESTMENTS \u00b7 RUSSIA",
+   "family": true
+  },
+  {
+   "name": "Miriam Adelson",
+   "value": 37.5,
+   "category": "GAMBLING & CASINOS",
+   "meta": "CASINOS \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "William Ding",
+   "value": 37.9,
+   "category": "TECHNOLOGY",
+   "meta": "ONLINE GAMES \u00b7 CHINA"
+  },
+  {
+   "name": "Paolo Ardoino",
+   "value": 38.0,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "CRYPTOCURRENCY"
+  },
+  {
+   "name": "Jean-Louis van der Velde",
+   "value": 38.0,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "CRYPTOCURRENCY \u00b7 HONG KONG"
+  },
+  {
+   "name": "Stephen Schwarzman",
+   "value": 38.3,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "BLACKSTONE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Savitri Jindal",
+   "value": 39.1,
+   "category": "METALS & MINING",
+   "meta": "STEEL \u00b7 INDIA",
+   "family": true
+  },
+  {
+   "name": "Alain Wertheimer",
+   "value": 39.4,
+   "category": "FASHION & RETAIL",
+   "meta": "CHANEL \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Gerard Wertheimer",
+   "value": 39.4,
+   "category": "FASHION & RETAIL",
+   "meta": "CHANEL \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Thomas Frist Jr.",
+   "value": 41.1,
+   "category": "HEALTHCARE",
+   "meta": "HOSPITALS \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Klaus-Michael Kuehne",
+   "value": 41.9,
+   "category": "LOGISTICS",
+   "meta": "KUEHNE + NAGEL \u00b7 SWITZERLAND"
+  },
+  {
+   "name": "Andrea Pignataro",
+   "value": 42.6,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "ION GROUP \u00b7 SWITZERLAND"
+  },
+  {
+   "name": "Gianluigi Aponte",
+   "value": 44.5,
+   "category": "LOGISTICS",
+   "meta": "MSC \u00b7 SWITZERLAND"
+  },
+  {
+   "name": "Rafaela Aponte-Diamant",
+   "value": 44.5,
+   "category": "LOGISTICS",
+   "meta": "SHIPPING \u00b7 SWITZERLAND"
+  },
+  {
+   "name": "Mark Mateschitz",
+   "value": 45.8,
+   "category": "FOOD & BEVERAGE",
+   "meta": "RED BULL \u00b7 AUSTRIA"
+  },
+  {
+   "name": "Li Ka-shing",
+   "value": 47.0,
+   "category": "DIVERSIFIED",
+   "meta": "CK HUTCHISON \u00b7 HONG KONG"
+  },
+  {
+   "name": "Giovanni Ferrero",
+   "value": 48.8,
+   "category": "FOOD & BEVERAGE",
+   "meta": "FERRERO \u00b7 BELGIUM"
+  },
+  {
+   "name": "Lukas Walton",
+   "value": 48.9,
+   "category": "FASHION & RETAIL",
+   "meta": "WALMART \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Jacqueline Mars",
+   "value": 49.1,
+   "category": "FOOD & BEVERAGE",
+   "meta": "MARS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "John Mars",
+   "value": 49.1,
+   "category": "FOOD & BEVERAGE",
+   "meta": "MARS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Ken Griffin",
+   "value": 49.8,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "CITADEL \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Masayoshi Son",
+   "value": 51.5,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "SOFTBANK \u00b7 JAPAN"
+  },
+  {
+   "name": "Iris Fontbona",
+   "value": 52.6,
+   "category": "METALS & MINING",
+   "meta": "ANTOFAGASTA \u00b7 CHILE",
+   "family": true
+  },
+  {
+   "name": "Robin Zeng",
+   "value": 53.2,
+   "category": "ENERGY",
+   "meta": "CATL \u00b7 CHINA"
+  },
+  {
+   "name": "Ma Huateng",
+   "value": 53.8,
+   "category": "TECHNOLOGY",
+   "meta": "TENCENT \u00b7 CHINA"
+  },
+  {
+   "name": "Tadashi Yanai",
+   "value": 61.8,
+   "category": "FASHION & RETAIL",
+   "meta": "UNIQLO \u00b7 JAPAN",
+   "family": true
+  },
+  {
+   "name": "Gautam Adani",
+   "value": 63.8,
+   "category": "DIVERSIFIED",
+   "meta": "ADANI GROUP \u00b7 INDIA"
+  },
+  {
+   "name": "Germ\u00e1n Larrea Mota Velasco",
+   "value": 67.1,
+   "category": "METALS & MINING",
+   "meta": "GRUPO M\u00c9XICO \u00b7 MEXICO",
+   "family": true
+  },
+  {
+   "name": "Dieter Schwarz",
+   "value": 67.2,
+   "category": "FASHION & RETAIL",
+   "meta": "SCHWARZ GROUP \u00b7 GERMANY"
+  },
+  {
+   "name": "Jeff Yass",
+   "value": 67.4,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "SUSQUEHANNA \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Zhong Shanshan",
+   "value": 68.1,
+   "category": "FOOD & BEVERAGE",
+   "meta": "NONGFU SPRING \u00b7 CHINA"
+  },
+  {
+   "name": "Zhang Yiming",
+   "value": 69.3,
+   "category": "TECHNOLOGY",
+   "meta": "BYTEDANCE \u00b7 SINGAPORE"
+  },
+  {
+   "name": "Charles Koch",
+   "value": 73.8,
+   "category": "DIVERSIFIED",
+   "meta": "KOCH INDUSTRIES \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Julia Koch",
+   "value": 81.2,
+   "category": "DIVERSIFIED",
+   "meta": "KOCH INDUSTRIES \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Thomas Peterffy",
+   "value": 82.9,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "INTERACTIVE BROKERS \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Giancarlo Devasini",
+   "value": 89.3,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "TETHER \u00b7 FRANCE"
+  },
+  {
+   "name": "Mukesh Ambani",
+   "value": 99.7,
+   "category": "DIVERSIFIED",
+   "meta": "RELIANCE \u00b7 INDIA"
+  },
+  {
+   "name": "Francoise Bettencourt Meyers",
+   "value": 100.0,
+   "category": "FASHION & RETAIL",
+   "meta": "L'OR\u00c9AL \u00b7 FRANCE",
+   "family": true
+  },
+  {
+   "name": "Bill Gates",
+   "value": 108.0,
+   "category": "TECHNOLOGY",
+   "meta": "MICROSOFT \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Michael Bloomberg",
+   "value": 109.0,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "BLOOMBERG LP \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Changpeng Zhao",
+   "value": 110.0,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "BINANCE \u00b7 UNITED ARAB EMIRATES"
+  },
+  {
+   "name": "Carlos Slim Helu",
+   "value": 125.0,
+   "category": "TELECOM",
+   "meta": "AM\u00c9RICA M\u00d3VIL \u00b7 MEXICO",
+   "family": true
+  },
+  {
+   "name": "Steve Ballmer",
+   "value": 126.0,
+   "category": "TECHNOLOGY",
+   "meta": "MICROSOFT \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Alice Walton",
+   "value": 134.0,
+   "category": "FASHION & RETAIL",
+   "meta": "WALMART \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Michael Dell",
+   "value": 141.0,
+   "category": "TECHNOLOGY",
+   "meta": "DELL \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Jim Walton",
+   "value": 143.0,
+   "category": "FASHION & RETAIL",
+   "meta": "WALMART \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Rob Walton",
+   "value": 146.0,
+   "category": "FASHION & RETAIL",
+   "meta": "WALMART \u00b7 UNITED STATES",
+   "family": true
+  },
+  {
+   "name": "Amancio Ortega",
+   "value": 148.0,
+   "category": "FASHION & RETAIL",
+   "meta": "INDITEX / ZARA \u00b7 SPAIN"
+  },
+  {
+   "name": "Warren Buffett",
+   "value": 149.0,
+   "category": "FINANCE & INVESTMENTS",
+   "meta": "BERKSHIRE HATHAWAY \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Jensen Huang",
+   "value": 154.0,
+   "category": "TECHNOLOGY",
+   "meta": "NVIDIA \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Bernard Arnault",
+   "value": 171.0,
+   "category": "FASHION & RETAIL",
+   "meta": "LVMH \u00b7 FRANCE",
+   "family": true
+  },
+  {
+   "name": "Larry Ellison",
+   "value": 190.0,
+   "category": "TECHNOLOGY",
+   "meta": "ORACLE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Mark Zuckerberg",
+   "value": 222.0,
+   "category": "TECHNOLOGY",
+   "meta": "META \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Jeff Bezos",
+   "value": 224.0,
+   "category": "TECHNOLOGY",
+   "meta": "AMAZON \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Sergey Brin",
+   "value": 237.0,
+   "category": "TECHNOLOGY",
+   "meta": "GOOGLE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Larry Page",
+   "value": 257.0,
+   "category": "TECHNOLOGY",
+   "meta": "GOOGLE \u00b7 UNITED STATES"
+  },
+  {
+   "name": "Elon Musk",
+   "value": 839.0,
+   "category": "TECHNOLOGY",
+   "meta": "TESLA \u00b7 SPACEX \u00b7 UNITED STATES"
+  }
+ ],
+ "total": 7123.7
+}

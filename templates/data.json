@@ -1,0 +1,8 @@
+{
+  "unit_note": "value = the single ranked number (net worth in $B, height in m, ...). Items are sorted ascending automatically: first item becomes rank 1.",
+  "items": [
+    {"name": "Example Person", "value": 25.6, "category": "HEALTHCARE", "meta": "VACCINES · INDIA"},
+    {"name": "Another Person", "value": 27.0, "category": "TECHNOLOGY", "meta": "SOFTWARE · UNITED STATES"}
+  ],
+  "total": 52.6
+}
