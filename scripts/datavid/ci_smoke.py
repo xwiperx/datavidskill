@@ -21,7 +21,12 @@ def main(argv=None):
     report_dir = Path(a.report_dir).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     report_dir.mkdir(parents=True, exist_ok=True)
-    temp_video = out.with_name('.' + out.stem + '.tmp.mp4')
+    if os.path.lexists(out):
+        print(f'ci_smoke: refusing to overwrite existing output: {out}', file=sys.stderr)
+        return 2
+    fd, temp_name = tempfile.mkstemp(prefix='.' + out.stem + '-', suffix='.tmp.mp4', dir=out.parent)
+    os.close(fd)
+    temp_video = Path(temp_name)
     try:
         with tempfile.TemporaryDirectory(prefix='datavid-ci-project-') as td:
             project = Path(td)
@@ -46,7 +51,7 @@ def main(argv=None):
             import numpy as np
             frame_count = 30
             start_time = E.T_INTRO + 0.03
-            cmd = ['ffmpeg', '-hide_banner', '-nostdin', '-loglevel', 'error',
+            cmd = ['ffmpeg', '-y', '-hide_banner', '-nostdin', '-loglevel', 'error',
                    '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-video_size', f'{E.W}x{E.H}',
                    '-framerate', str(E.FPS), '-i', 'pipe:0',
                    '-f', 'lavfi', '-i', 'anullsrc=r=44100:cl=stereo',
@@ -73,18 +78,16 @@ def main(argv=None):
                 raise
             if not temp_video.is_file() or temp_video.stat().st_size < 4096:
                 raise RuntimeError('smoke output is missing or implausibly small')
-            os.replace(temp_video, out)
-
             from qa_media import inspect_video
             from qa_visual import inspect_media, validate_layout
             from qa_compare import compare_videos
-            media = inspect_video(out, expected_fps=30, edge_ignore_seconds=0.0,
+            media = inspect_video(temp_video, expected_fps=30, edge_ignore_seconds=0.0,
                                   freeze_min_seconds=0.8)
             (report_dir / 'media.json').write_text(json.dumps(media, indent=2) + '\n')
             if not media['passed']:
                 raise RuntimeError(f'media QA failed: {media}')
 
-            visual = inspect_media(video=str(out), every_seconds=0.32, min_words=1,
+            visual = inspect_media(video=str(temp_video), every_seconds=0.32, min_words=1,
                                    expected=())
             (report_dir / 'ocr.json').write_text(json.dumps(visual, indent=2, ensure_ascii=False) + '\n')
             if not visual['passed'] or visual['sample_count'] < 2:
@@ -97,19 +100,22 @@ def main(argv=None):
             (report_dir / 'layout.json').write_text(json.dumps(layout, indent=2) + '\n')
             layout_box_count = len(json.loads(layout_path.read_text(encoding='utf-8'))['boxes'])
 
-            comparison, sheet = compare_videos(out, out, fractions=(0.2, 0.75))
+            comparison, sheet = compare_videos(temp_video, temp_video, fractions=(0.2, 0.75))
             (report_dir / 'comparison.json').write_text(json.dumps(comparison, indent=2) + '\n')
             sheet.save(report_dir / 'comparison.jpg', quality=85)
             for row in comparison['samples']:
                 if row['mae'] > 0.01 or row['ssim_8x8'] < 0.999:
                     raise RuntimeError(f'self-comparison QA failed: {row}')
-            digest = hashlib.sha256(out.read_bytes()).hexdigest()
-            summary = {'passed': True, 'output': str(out), 'bytes': out.stat().st_size,
+            digest = hashlib.sha256(temp_video.read_bytes()).hexdigest()
+            summary = {'passed': True, 'output': str(out), 'bytes': temp_video.stat().st_size,
                        'sha256': digest, 'frame_count': media['frame_count'],
                        'fps': media['fps'], 'ocr_samples': visual['sample_count'],
                        'layout_boxes': layout_box_count,
                        'qa_reports': str(report_dir)}
             (report_dir / 'summary.json').write_text(json.dumps(summary, indent=2) + '\n')
+            # Publish only after media, OCR, declared-layout, and self-comparison QA pass.
+            # A hard link is atomic and cannot overwrite a concurrently-created output.
+            os.link(temp_video, out)
             print(json.dumps(summary))
             return 0
     except Exception as exc:

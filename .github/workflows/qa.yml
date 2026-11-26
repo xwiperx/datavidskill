@@ -49,13 +49,21 @@ jobs:
         run: |
           python scripts/datavid/ci_smoke.py --output "$RUNNER_TEMP/datavid-smoke.mp4" --report-dir "$RUNNER_TEMP/datavid-qa"
 
-      - name: Upload QA reports and smoke clip
+      - name: Upload QA reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: datavid-qa-${{ github.run_id }}
+          name: datavid-qa-reports-${{ github.run_id }}
           path: |
-            ${{ runner.temp }}/datavid-smoke.mp4
             ${{ runner.temp }}/datavid-qa/
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload passing smoke clip
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: datavid-qa-smoke-${{ github.run_id }}
+          path: ${{ runner.temp }}/datavid-smoke.mp4
+          if-no-files-found: error
           retention-days: 7

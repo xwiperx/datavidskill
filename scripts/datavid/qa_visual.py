@@ -8,6 +8,7 @@ import argparse
 import csv
 import io
 import json
+import math
 import shutil
 import subprocess
 import sys
@@ -33,9 +34,20 @@ def box_intersection_ratio(a, b):
 def find_box_collisions(boxes, threshold=0.02):
     """Return invalid/out-of-bounds and forbidden pair overlaps from layout data."""
     errors, overlaps = [], []
+    try:
+        threshold = float(threshold)
+    except (TypeError, ValueError, OverflowError):
+        return [{'type': 'invalid_overlap_threshold'}], overlaps
+    if not math.isfinite(threshold) or threshold < 0:
+        return [{'type': 'invalid_overlap_threshold'}], overlaps
+    if not isinstance(boxes, list):
+        return [{'type': 'invalid_boxes_list'}], overlaps
     ids = set()
     by_scene = defaultdict(list)
     for row in boxes:
+        if not isinstance(row, dict):
+            errors.append({'type': 'invalid_box_record'})
+            continue
         name = str(row.get('name', '')).strip()
         scene = str(row.get('scene', 'default'))
         if not name or name in ids:
@@ -47,7 +59,7 @@ def find_box_collisions(boxes, threshold=0.02):
         except (KeyError, TypeError, ValueError):
             errors.append({'type': 'invalid_box_geometry', 'name': name})
             continue
-        if w <= 0 or h <= 0:
+        if not all(math.isfinite(value) for value in (x, y, w, h)) or w <= 0 or h <= 0:
             errors.append({'type': 'invalid_box_geometry', 'name': name})
             continue
         by_scene[scene].append({**row, 'x': x, 'y': y, 'width': w, 'height': h})
@@ -66,11 +78,28 @@ def find_box_collisions(boxes, threshold=0.02):
 
 def validate_layout(path, threshold=0.02):
     doc = json.loads(Path(path).read_text(encoding='utf-8'))
-    width, height = int(doc['width']), int(doc['height'])
-    errors, overlaps = find_box_collisions(doc.get('boxes', []), threshold)
-    for row in doc.get('boxes', []):
+    if not isinstance(doc, dict):
+        return {'canvas': None, 'errors': [{'type': 'invalid_layout_document'}],
+                'overlaps': [], 'passed': False}
+    try:
+        width_value, height_value = float(doc['width']), float(doc['height'])
+        if (not math.isfinite(width_value) or not math.isfinite(height_value) or
+                width_value <= 0 or height_value <= 0 or
+                not width_value.is_integer() or not height_value.is_integer()):
+            raise ValueError
+        width, height = int(width_value), int(height_value)
+    except (KeyError, TypeError, ValueError, OverflowError):
+        return {'canvas': None, 'errors': [{'type': 'invalid_canvas_dimensions'}],
+                'overlaps': [], 'passed': False}
+    boxes = doc.get('boxes', [])
+    errors, overlaps = find_box_collisions(boxes, threshold)
+    for row in boxes if isinstance(boxes, list) else []:
+        if not isinstance(row, dict):
+            continue
         try:
             x, y, w, h = (float(row[k]) for k in ('x', 'y', 'width', 'height'))
+            if not all(math.isfinite(value) for value in (x, y, w, h)):
+                continue
             if x < 0 or y < 0 or x + w > width or y + h > height:
                 errors.append({'type': 'out_of_bounds', 'name': row.get('name'),
                                'canvas': [width, height]})

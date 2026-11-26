@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "rank_overrides": {
+    "2": {
+      "name": "Suleiman Kerimov",
+      "family": true
+    },
+    "4": {
+      "name": "Rick Cohen",
+      "family": true
+    },
+    "7": {
+      "name": "Vicky Safra",
+      "family": true
+    },
+    "11": {
+      "name": "Andreas von Bechtolsheim",
+      "family": true
+    },
+    "13": {
+      "name": "Leonid Mikhelson",
+      "family": true
+    },
+    "15": {
+      "meta": "DANGOTE CEMENT · NIGERIA"
+    },
+    "20": {
+      "name": "François Pinault",
+      "family": true
+    },
+    "24": {
+      "name": "Lyndal Stephens Greth",
+      "family": true
+    },
+    "26": {
+      "name": "Reinhold Wuerth",
+      "family": true
+    },
+    "29": {
+      "name": "Elaine Marshall",
+      "family": true
+    },
+    "32": {
+      "name": "Phil Knight",
+      "family": true
+    },
+    "35": {
+      "name": "Marilyn Simons",
+      "family": true
+    },
+    "36": {
+      "name": "He Xiangjian",
+      "family": true
+    },
+    "38": {
+      "name": "Zheng Shuliang",
+      "family": true
+    },
+    "44": {
+      "name": "Alexey Mordashov",
+      "family": true
+    },
+    "45": {
+      "name": "Miriam Adelson",
+      "family": true
+    },
+    "49": {
+      "meta": "BLACKSTONE · UNITED STATES"
+    },
+    "50": {
+      "name": "Savitri Jindal",
+      "family": true
+    },
+    "53": {
+      "name": "Thomas Frist Jr.",
+      "family": true
+    },
+    "54": {
+      "meta": "KUEHNE + NAGEL · SWITZERLAND"
+    },
+    "55": {
+      "meta": "ION GROUP · SWITZERLAND"
+    },
+    "56": {
+      "meta": "MSC · SWITZERLAND"
+    },
+    "59": {
+      "meta": "CK HUTCHISON · HONG KONG"
+    },
+    "60": {
+      "meta": "FERRERO · BELGIUM"
+    },
+    "62": {
+      "meta": "MARS · UNITED STATES"
+    },
+    "63": {
+      "meta": "MARS · UNITED STATES"
+    },
+    "64": {
+      "meta": "CITADEL · UNITED STATES"
+    },
+    "65": {
+      "meta": "SOFTBANK · JAPAN"
+    },
+    "66": {
+      "name": "Iris Fontbona",
+      "meta": "ANTOFAGASTA · CHILE",
+      "family": true
+    },
+    "67": {
+      "meta": "CATL · CHINA"
+    },
+    "68": {
+      "meta": "TENCENT · CHINA"
+    },
+    "69": {
+      "name": "Tadashi Yanai",
+      "meta": "UNIQLO · JAPAN",
+      "family": true
+    },
+    "70": {
+      "meta": "ADANI GROUP · INDIA"
+    },
+    "71": {
+      "name": "Germán Larrea Mota Velasco",
+      "meta": "GRUPO MÉXICO · MEXICO",
+      "family": true
+    },
+    "72": {
+      "meta": "SCHWARZ GROUP · GERMANY"
+    },
+    "73": {
+      "meta": "SUSQUEHANNA · UNITED STATES"
+    },
+    "74": {
+      "meta": "NONGFU SPRING · CHINA"
+    },
+    "75": {
+      "meta": "BYTEDANCE · SINGAPORE"
+    },
+    "76": {
+      "name": "Charles Koch",
+      "meta": "KOCH INDUSTRIES · UNITED STATES",
+      "family": true
+    },
+    "77": {
+      "name": "Julia Koch",
+      "meta": "KOCH INDUSTRIES · UNITED STATES",
+      "family": true
+    },
+    "78": {
+      "meta": "INTERACTIVE BROKERS · UNITED STATES"
+    },
+    "79": {
+      "meta": "TETHER · FRANCE"
+    },
+    "80": {
+      "meta": "RELIANCE · INDIA"
+    },
+    "81": {
+      "name": "Francoise Bettencourt Meyers",
+      "family": true
+    },
+    "84": {
+      "meta": "BINANCE · UNITED ARAB EMIRATES"
+    },
+    "85": {
+      "name": "Carlos Slim Helu",
+      "meta": "AMÉRICA MÓVIL · MEXICO",
+      "family": true
+    },
+    "88": {
+      "meta": "DELL · UNITED STATES"
+    },
+    "89": {
+      "name": "Jim Walton",
+      "family": true
+    },
+    "90": {
+      "name": "Rob Walton",
+      "family": true
+    },
+    "91": {
+      "meta": "INDITEX / ZARA · SPAIN"
+    },
+    "93": {
+      "meta": "NVIDIA · UNITED STATES"
+    },
+    "94": {
+      "name": "Bernard Arnault",
+      "family": true
+    },
+    "96": {
+      "meta": "META · UNITED STATES"
+    },
+    "100": {
+      "meta": "TESLA · SPACEX · UNITED STATES"
+    }
+  }
+}

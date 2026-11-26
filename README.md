@@ -10,7 +10,7 @@ The reference film in `projects/richest-2026` is a 3:00 documentary on the Forbe
 
 ## Use it as a skill
 
-`dist/datavid.skill` is the packaged skill (SKILL.md + engine + image resolver + fonts + references). Attach it to a Manus task and give a topic — e.g. "a 3-minute video of the 100 tallest buildings" — and the agent will source the data and subject images, build the project and render the MP4.
+`dist/datavid.skill` is the packaged skill, built from the current `SKILL.md`, references, templates, renderer, image resolver, QA tools, and fonts. Attach it to a Manus task and give a topic — e.g. "a 3-minute video of the 100 tallest buildings" — and the agent will guide topic selection, research, storyboard review, and production gates.
 
 ## Quick start
 
@@ -19,10 +19,9 @@ python3 scripts/new_project.py my-project          # config.json + data.json
 # edit data.json (items: name, value, category, meta) and config.json (titles, units)
 python3 scripts/datavid/fetch_images.py --project my-project  # optional, license-aware Wikimedia images
 python3 scripts/render.py --project my-project --stills 3 8 18 40
-python3 scripts/render.py --project my-project --workers 6
 ```
 
-`--stills` writes PNGs to `my-project/stills/` so you can check typography before spending five minutes on a full render. The full run writes `my-project/out/<output_name>` and also synthesises `out/score.wav` if it is missing.
+`--stills` writes PNGs to `my-project/stills/` for preview and layout checks. A full render is a separate release step: first complete the current storyboard, obtain explicit approval, choose output resolution(s), and pass the production gates in `references/production-gates.md`; only then run `python3 scripts/render.py --project my-project --workers 6`. The CLI itself does not collect approval. Renders are written to `my-project/out/` with no-clobber naming. `--audio-only` refreshes the raw score and invalidates the normalized score cache so the next full render regenerates it.
 
 Requirements: Python 3.10+, Pillow, NumPy, ffmpeg with libx264. Fonts are bundled (Bebas Neue, Inter).
 
@@ -59,7 +58,7 @@ docs/preview.jpg          still from the film
 
 ## The reference project
 
-`projects/richest-2026/data.json` holds 100 people sorted ascending by net worth, with `category` (industry) and `meta` (company · country). `source/forbes2026.json` is the untouched Forbes API snapshot (March 2026) and `source/build_data.py` documents how the fields were cleaned. The current open-license portrait cache covers 69 of 100 people; 31 exact, suitably licensed portraits were not verified, so those panels intentionally remain blank. See `projects/richest-2026/IMAGE_COVERAGE.md` and `image_sources.json` for the ranked list and source/credit records. Total: $7.12T.
+`projects/richest-2026/data.json` holds 100 people sorted ascending by net worth, with `category` (industry) and `meta` (company · country). `source/forbes2026.json` is the Forbes API snapshot (March 2026); `source/build_data.py` plus `source/data_overrides.json` deterministically build the curated output. The current local portrait cache contains 61 assets; 39 entries intentionally have no cached image. See `projects/richest-2026/IMAGE_COVERAGE.md` and `image_sources.json` for ranks and source/credit records. Total: $7.12T.
 
 ```bash
 python3 scripts/render.py --project projects/richest-2026 --stills 75

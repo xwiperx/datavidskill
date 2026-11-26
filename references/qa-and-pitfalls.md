@@ -8,6 +8,7 @@ Use this checklist before storyboard approval and again after every full render.
 - Confirm the source/date/unit of the ranking and recompute its stated total. Structural consistency does not establish that every estimate is factually correct; spot-check values against the dated source and flag unresolved discrepancies.
 - Build and inspect a labeled contact sheet of every local image. A resolver/API match or a permissive license does not prove identity. Check doubtful source pages manually; if exact identity or license is uncertain, remove the local path and leave the fixed portrait card empty. Never replace a missing portrait with a logo, group scene, similarly named person, or generic image.
 - Check every local path exists and its license/artist/credit/source URL remains in the manifest. Do not leave excluded assets available to the renderer.
+- Treat every manifest image path and configured image directory as untrusted input: require a relative path, resolve symlinks, and reject any target outside the project root before reading or writing.
 - Report actual eligible portrait coverage and list all missing/excluded ranks. Do not say “all images verified” unless each one was separately reviewed.
 
 ## Still and layout review
@@ -34,6 +35,7 @@ Reject empty or malformed datasets with explicit validation messages before rend
 - A cached segment is valid only after probing exact dimensions, fps, frame count, codec, and full decode. Render to a unique temporary file, validate it, then atomically publish. Do not treat a size threshold as proof of completion.
 - Write the cache signature only after successful segments and validated concatenation. Use a per-project lock. Preserve previously delivered MP4s; choose a unique output name and never use `ffmpeg -y` against a published file. Validate a temporary final output before no-clobber publication.
 - Generate WAV to a temporary file, verify channels/sample rate/duration/frame count, and atomically publish. Normalize the delivered mix with EBU R128 (`I≈−14 LUFS`, `TP≤−1.5 dBTP`; use −3.2 dBTP before AAC encoding as codec margin). Measure the final AAC rather than assuming the source target carried through. Inspect audio at all scene/chunk boundaries and check for clipping or isolated discontinuities; do not treat normal musical transients alone as digital clicks.
+- When audio-only generation replaces `score_raw.wav`, invalidate the normalized `score.wav` at the same time; otherwise a format-valid but stale normalized cache can be muxed into the next film.
 - Full render gate: regenerate the current storyboard, inspect all 100 holds and motion samples, show it to the user, and wait for explicit approval. Ask for one or more resolutions from 144p, 240p, 360p, 480p, 720p and 1080p. Previous approvals/selections do not carry over to a changed storyboard/output.
 - After approval, render one 1080p30 master and only the selected delivery sizes. Probe each MP4 for dimensions, frame rate, frame count, duration, video/audio streams, and perform a complete decode. Measure loudness/true peak on the final AAC. Preserve prior versions and use Git LFS for large deliverables.
 

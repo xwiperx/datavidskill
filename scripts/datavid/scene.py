@@ -349,10 +349,13 @@ def draw_endcard(im, t):
     x0 = W / 2 - total_w / 2
     base_y = 792
     max_h = 168
+    height_span = max(HEIGHTS) - H_MIN if HEIGHTS else 0.0
     for i, pp in enumerate(PEOPLE):
         bx = x0 + total_w * i / n
         bw = total_w / n + 0.6
-        hh = 8 + max_h * (HEIGHTS[i] - H_MIN) / (max(HEIGHTS) - H_MIN)
+        normalized_height = ((HEIGHTS[i] - H_MIN) / height_span
+                             if height_span > 1e-9 else 0.0)
+        hh = 8 + max_h * normalized_height
         col = tier_color(pp['worth'])
         reveal = ease_out(clamp((t - T_ENDCARD - 0.25 - i*0.012) / 1.05, 0, 1))
         d.rectangle([bx, base_y - hh*reveal, bx + bw, base_y], fill=col + (int(a * 0.92*reveal),))

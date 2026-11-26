@@ -34,6 +34,26 @@ class VisualQATests(unittest.TestCase):
         errors, overlaps = qa_visual.find_box_collisions(boxes)
         self.assertEqual((errors, overlaps), ([], []))
 
+    def test_non_finite_layout_geometry_fails_closed(self):
+        boxes = [{'name': 'title', 'x': float('nan'), 'y': 0,
+                  'width': 20, 'height': 10}]
+        errors, overlaps = qa_visual.find_box_collisions(boxes)
+        self.assertEqual(overlaps, [])
+        self.assertTrue(any(row['type'] == 'invalid_box_geometry' for row in errors))
+        with tempfile.TemporaryDirectory() as td:
+            layout = Path(td) / 'layout.json'
+            layout.write_text('{"width":100,"height":100,"boxes":[{"name":"title","x":NaN,"y":0,"width":20,"height":10}]}')
+            report = qa_visual.validate_layout(layout)
+        self.assertFalse(report['passed'])
+
+    def test_invalid_canvas_dimensions_fail_closed(self):
+        with tempfile.TemporaryDirectory() as td:
+            layout = Path(td) / 'layout.json'
+            layout.write_text('{"width":Infinity,"height":100,"boxes":[]}')
+            report = qa_visual.validate_layout(layout)
+        self.assertFalse(report['passed'])
+        self.assertEqual(report['errors'][0]['type'], 'invalid_canvas_dimensions')
+
     def test_allowed_overlap_is_not_reported(self):
         boxes = [
             {'name': 'background', 'x': 0, 'y': 0, 'width': 100, 'height': 100,
@@ -138,6 +158,19 @@ class ComparisonTests(unittest.TestCase):
         self.assertGreater(metrics['mae'], 0)
         self.assertLess(metrics['ssim_8x8'], 1)
         self.assertGreater(metrics['changed_fraction'], 0)
+
+    def test_empty_or_non_finite_fractions_are_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'at least one'):
+            qa_compare.normalize_fractions(())
+        with self.assertRaisesRegex(ValueError, 'finite'):
+            qa_compare.normalize_fractions((float('nan'),))
+        with self.assertRaisesRegex(ValueError, 'finite'):
+            qa_compare.normalize_fractions((float('inf'),))
+
+    def test_cli_empty_fraction_list_fails_before_opening_video(self):
+        result = qa_compare.main(['missing-reference.mp4', 'missing-candidate.mp4',
+                                  '--fractions', '', '--report', 'unused.json'])
+        self.assertEqual(result, 2)
 
 
 if __name__ == '__main__':

@@ -1,8 +1,7 @@
 """Procedural cinematic score for the film. No samples, no external audio."""
 import os
-import tempfile
 import numpy as np
-import wave
+from audio_cache import publish_raw_score
 import engine as E
 
 SR = 44100
@@ -281,23 +280,8 @@ out = np.stack([L, R], axis=1)
 out16 = (np.clip(out, -1, 1) * 32767).astype(np.int16)
 
 outdir = os.path.join(E.ROOT, 'out')
-os.makedirs(outdir, exist_ok=True)
-fd, tmp = tempfile.mkstemp(prefix='.score-', suffix='.tmp.wav', dir=outdir)
-os.close(fd)
-try:
-    with wave.open(tmp, 'wb') as w:
-        w.setnchannels(2)
-        w.setsampwidth(2)
-        w.setframerate(SR)
-        w.writeframes(out16.tobytes())
-    with wave.open(tmp, 'rb') as w:
-        if (w.getnchannels() != 2 or w.getsampwidth() != 2 or
-                w.getframerate() != SR or w.getnframes() != NS):
-            raise RuntimeError('generated score WAV failed validation')
-    os.replace(tmp, os.path.join(outdir, 'score_raw.wav'))
-finally:
-    if os.path.exists(tmp):
-        os.unlink(tmp)
+publish_raw_score(outdir, out16.tobytes(), sample_rate=SR, channels=2,
+                  sample_width=2, expected_frames=NS)
 
 rms = np.sqrt((out ** 2).mean())
 print('wrote score_raw.wav', out.shape, 'peak', round(float(np.abs(out).max()), 3), 'rms', round(float(rms), 4))

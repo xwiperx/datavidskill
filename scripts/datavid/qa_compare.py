@@ -59,16 +59,35 @@ def compare_arrays(reference, candidate, changed_threshold=12.0):
             'changed_fraction': float((diff.max(axis=2) > changed_threshold).mean())}
 
 
+def normalize_fractions(fractions):
+    """Return a non-empty tuple of finite, unique normalized sample positions."""
+    try:
+        values = tuple(float(value) for value in fractions)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError('sample fractions must be numeric values in [0,1)') from exc
+    if not values:
+        raise ValueError('at least one sample fraction is required')
+    if any(not math.isfinite(value) or not 0 <= value < 1 for value in values):
+        raise ValueError('sample fractions must be finite values in [0,1)')
+    if len(set(values)) != len(values):
+        raise ValueError('sample fractions must not contain duplicates')
+    return values
+
+
 def compare_videos(reference, candidate, fractions=(0.1, 0.33, 0.5, 0.66, 0.9),
                    size=(320, 180), max_duration_delta=0.5):
+    fractions = normalize_fractions(fractions)
+    if (not isinstance(size, (tuple, list)) or len(size) != 2 or
+            any(not isinstance(dimension, int) or dimension < 16 for dimension in size)):
+        raise ValueError('sample size must contain two integer dimensions >=16')
+    if not math.isfinite(max_duration_delta) or max_duration_delta < 0:
+        raise ValueError('max duration delta must be finite and non-negative')
     d1, d2 = video_duration(reference), video_duration(candidate)
     duration_delta = abs(d1 - d2)
     if duration_delta > max_duration_delta:
         raise ValueError(f'video durations differ by {duration_delta:.3f}s (> {max_duration_delta}s)')
     rows, tiles = [], []
     for fraction in fractions:
-        if not 0 <= fraction < 1:
-            raise ValueError('sample fractions must be in [0,1)')
         t1, t2 = fraction * d1, fraction * d2
         a, b = sample_rgb(reference, t1, size), sample_rgb(candidate, t2, size)
         metrics = compare_arrays(a, b)
@@ -109,7 +128,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     try:
         size = tuple(int(x) for x in a.size.lower().split('x', 1))
-        fractions = tuple(float(x) for x in a.fractions.split(',') if x.strip())
+        fractions = normalize_fractions(x for x in a.fractions.split(',') if x.strip())
         if len(size) != 2 or min(size) < 16:
             raise ValueError('--size must be WIDTHxHEIGHT with dimensions >=16')
         report, sheet = compare_videos(a.reference, a.candidate, fractions, size,

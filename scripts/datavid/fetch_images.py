@@ -25,6 +25,22 @@ API_COMMONS = 'https://commons.wikimedia.org/w/api.php'
 ALLOW = re.compile(r'^(CC0|CC BY(?:-SA)?(?: |$)|Public domain|PD(?:-|$))', re.I)
 
 
+def safe_image_directory(project_root, configured='assets/entities'):
+    """Resolve a configured image directory without allowing writes outside a project."""
+    root = Path(project_root).resolve()
+    if not isinstance(configured, str) or not configured.strip():
+        raise ValueError('image_directory must be a non-empty project-relative path')
+    relative = Path(configured)
+    if relative.is_absolute():
+        raise ValueError('image_directory must be project-relative')
+    target = (root / relative).resolve()
+    try:
+        target.relative_to(root)
+    except ValueError as exc:
+        raise ValueError('image_directory must stay inside the project directory') from exc
+    return target
+
+
 def get_json(url):
     req = urllib.request.Request(url, headers={'User-Agent': UA})
     with urllib.request.urlopen(req, timeout=35) as resp:
@@ -180,6 +196,7 @@ def main():
     config = json.loads((root / 'config.json').read_text())
     data = json.loads((root / 'data.json').read_text())
     mode = config.get('visual_mode', 'auto')
+    images_dir = safe_image_directory(root, config.get('image_directory', 'assets/entities'))
     items = data['items']
     try:
         pages = wiki_pages(items)
@@ -198,7 +215,6 @@ def main():
                 resolved[i] = {'name': items[i]['name'], 'status': 'lookup-error: ' + str(exc)[:180]}
             if (i + 1) % 10 == 0:
                 print(f'lookups complete: {i + 1}/{len(items)}', flush=True)
-    images_dir = root / config.get('image_directory', 'assets/entities')
     images_dir.mkdir(parents=True, exist_ok=True)
     manifest = []
     for i, row in enumerate(resolved):

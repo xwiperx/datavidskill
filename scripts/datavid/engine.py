@@ -34,9 +34,12 @@ RAW_ITEMS = DATA.get('items')
 if not isinstance(RAW_ITEMS, list) or not RAW_ITEMS:
     raise ValueError('data.json must contain a non-empty items list')
 for row_no, row in enumerate(RAW_ITEMS, 1):
+    raw_value = row.get('value') if isinstance(row, dict) else None
+    if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+        raise ValueError(f'item {row_no} must have a numeric value')
     try:
-        value = float(row['value'])
-    except (KeyError, TypeError, ValueError) as exc:
+        value = float(raw_value)
+    except (TypeError, ValueError, OverflowError) as exc:
         raise ValueError(f'item {row_no} must have a numeric value') from exc
     if not math.isfinite(value) or value < 0 or not str(row.get('name', '')).strip():
         raise ValueError(f'item {row_no} must have a non-empty name and finite non-negative value')
@@ -83,7 +86,7 @@ BW, BD = 3.60, 3.60
 H_MIN, H_RANGE = float(cfg('height_min', 2.8)), float(cfg('height_range', 31.0))
 RANK_MIX = max(0.0, min(1.0, float(cfg('height_rank_mix', 0.42))))
 HEIGHTS = [H_MIN + H_RANGE * (
-    (1.0 - RANK_MIX) * ((p['worth'] / MAXW) ** GAMMA) +
+    (1.0 - RANK_MIX) * ((p['worth'] / MAXW) ** GAMMA if MAXW > 0 else 0.0) +
     RANK_MIX * (i / max(1, N - 1))) for i, p in enumerate(PEOPLE)]
 H_MAX = max(HEIGHTS)
 DL = math.hypot(DX, DZ)
@@ -132,8 +135,16 @@ def ease_in_out(x):
 
 def tier_color(worth):
     """Map a value to the colour ramp by its position on a log scale."""
-    span = math.log(MAXW / MINW) if MAXW > MINW else 1.0
-    t = clamp(math.log(max(worth, MINW) / MINW) / span, 0.0, 1.0)
+    if MAXW <= 0:
+        t = 0.0
+    else:
+        positive = [p['worth'] for p in PEOPLE if p['worth'] > 0]
+        low = min(positive) if positive else MAXW
+        if worth <= 0 or MAXW <= low:
+            t = 0.0
+        else:
+            span = math.log(MAXW / low)
+            t = clamp(math.log(max(worth, low) / low) / span, 0.0, 1.0)
     pos = TIER_POS
     for k in range(len(pos) - 1):
         if t <= pos[k + 1] or k == len(pos) - 2:
